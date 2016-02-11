@@ -2,7 +2,7 @@
 import rospy
 import math
 from hektar.msg import wheelVelocity 
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Int8
 from dynamic_reconfigure.server import Server
 from hektar.cfg import HektarConfig
 
@@ -44,6 +44,9 @@ class Callback():
     self.offset_addition = config["offset_addition"]
     return config
 
+  def set_speed(self, message):
+    self.speed = message.data
+
 
 def control():
   rospy.init_node('wheel_control', anonymous=True)
@@ -51,6 +54,8 @@ def control():
   callbacker = Callback()
   srv = Server(HektarConfig, callbacker.callback)
   rospy.Subscriber('control_effort', Float64, callbacker.wheel_callback, \
+     queue_size=1, tcp_nodelay=False)   
+  rospy.Subscriber('set_speed', Int8, callbacker.set_speed, \
      queue_size=1, tcp_nodelay=False)   
   rospy.spin()
 
