@@ -62,7 +62,7 @@ generate_dynamic_reconfigure_options(
    IRarray.msg
    wheelVelocity.msg
    encoderPos.msg
-   Move.msg
+   Claw.msg
  )
 
 ## Generate services in the 'srv' folder
