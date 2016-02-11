@@ -1,2 +1,2 @@
-uint posL
-uint posR
+uint16 posL
+uint16 posR
