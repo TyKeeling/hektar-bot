@@ -10,15 +10,15 @@ pub = rospy.Publisher('arm_commands', armCtrl, queue_size=10)
 # Initilaize parameters
 sweepMinBase = 0
 sweepMaxBase = 1024
-offsetBase = 0
+offsetBase = -465
 
 sweepMinShoulder = 315  # mechanical min
 sweepMaxShoulder = 709  # mechanical max
 offsetShoulder = -254 # 256 minus value at pi/2
 
-sweepMinElbow = 218 # mechanical min
-sweepMaxElbow = 543  # mechanical max
-offsetElbow = -341 # offset for reading at angle 0
+sweepMinElbow = 210 # mechanical min
+sweepMaxElbow = 540  # mechanical max
+offsetElbow = -330 # offset for reading at angle 0
 
 angleMinGripper = pi/2
 angleMaxGripper = 0
@@ -81,44 +81,46 @@ class Arm:
     nowElbow = self.pots.elbowPos       
     
     angles = [0,0,0]
-    if kinematics.solve(float(self.target.x), float(self.target.y), float(self.target.z), angles):
-      newBase = angles[0]*162.9 - offsetBase
+    # replacing base solving with x = 0 so we can use x message for base pot val
+    if kinematics.solve(0, float(self.target.y), float(self.target.z), angles):
+    #  newBase = angles[0]*162.9 - offsetBase
       newShoulder = angles[1]*162.9 - offsetShoulder
       newElbow = angles[2]*162.9 - offsetElbow
         
-      errorBase = newBase - nowBase
+    # errorBase = newBase - nowBase
+      errorBase = self.target.x - nowBase
       errorShoulder= newShoulder - nowShoulder
       errorElbow = newElbow - nowElbow
      
       rospy.loginfo("ERRORS: base: %d  elbow: %d shoulder: %d" % (errorBase, errorElbow, errorShoulder))
 
       msg = armCtrl()
-      rospy.loginfo("TARGETS:  base: %d  elbow: %d  shoulder: %d" % (newBase, newElbow, newShoulder))
+      rospy.loginfo("TARGETS:  base: %d  elbow: %d  shoulder: %d" % (nowBase + errorBase, newElbow, newShoulder))
 
       setSpeed = 127
-      kpBase = 3
-      kpShoulder = 1.5
-      kpElbow = 3
-      kiBase = 0
-      kiShoulder = 0.5
-      kiElbow = 0.5	
+      kpBase = .2
+      kpShoulder = 1      
+      kpElbow = 2
+      kiBase = 1
+      kiShoulder = 0
+      kiElbow = 0	
       kd = 0
  
       rospy.loginfo("Base Integral: %d" % self.integralBase)
-      rospy.loginfo("Elbow Integral: %d" % self.integralElbow)
-      rospy.loginfo("Shoulder Integral: %d" % self.integralShoulder)
+ #     rospy.loginfo("Elbow Integral: %d" % self.integralElbow)
+#      rospy.loginfo("Shoulder Integral: %d" % self.integralShoulder)
 
       # define acceptable deviation
       dev = 4
 	
       #set velocities nonzero if outside permitted error
       if errorBase > dev:
-        msg.baseVel = min(setSpeed, int(kpBase * errorBase + kiBase*self.integralBase))
+        msg.baseVel = min(40, int(kpBase * errorBase + kiBase*self.integralBase))
       elif (-1*dev <= errorBase <= dev):
         self.integralBase = 0
         msg.baseVel = 0
       else: 
-        msg.baseVel = max(-1*setSpeed, int(kpBase * errorBase + kiBase*self.integralBase))
+        msg.baseVel = max(-1*40, int(kpBase * errorBase + kiBase*self.integralBase))
 
       if errorElbow > dev:
          msg.elbowVel = min(setSpeed, int(kpElbow * errorElbow +kiElbow*self.integralElbow))
