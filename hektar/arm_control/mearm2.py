@@ -1,7 +1,7 @@
 import rospy
 from hektar.msg import armCtrl, armPos, armMaster
 from rosserial_arduino.msg import Adc
-import kinetmatics
+import kinematics
 import rospy
 import time
 from math import pi
@@ -43,7 +43,7 @@ from math import pi
 # output
 def move(master, position):
     nowBase = (position.basePos - sweepMinBase)/(sweepMaxBase - sweepMinBase) * (abs(angleMaxBase) + abs(angleMinBase))
-    nowShoulder = (position.shoulderPos - sweepMinShoulder)/(sweepMaxShoulder - sweepMinShoulder) * (abs(angleMaxShoulder) + abs(self.angleMaxShoulder))
+    nowShoulder = (position.shoulderPos - sweepMinShoulder)/(sweepMaxShoulder - sweepMinShoulder) * (abs(angleMaxShoulder) + abs(angleMaxShoulder))
     nowElbow = (position.elbowPos - sweepMinElbow)/(sweepMaxElbow - sweepMinElbow) * (abs(angleMaxElbow) + abs(angleMinBase))
     angles = [0,0,0]
 

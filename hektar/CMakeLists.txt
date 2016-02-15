@@ -52,6 +52,8 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    armCtrl.msg
    armPos.msg
+   armTarget.msg
+   armPotTargets.msg
  )
 
 ## Generate services in the 'srv' folder
