@@ -9,20 +9,21 @@ from math import pi
 #init publisher to arduino
 
 # Initilaize parameters
-    sweepMinBase = 145
+#   Base measurements not yet taken
+    sweepMinBase = 145 
     sweepMaxBase = 49
     angleMinBase = -pi/4
     angleMaxBase = pi/4
 
-    sweepMinShoulder = 118
-    sweepMaxShoulder = 22
-    angleMinShoulder = pi/4
-    angleMaxShoulder = 3 * pi/4
+    sweepMinShoulder = 372
+    sweepMaxShoulder = 1117
+    angleMinShoulder = pi/2
+    angleMaxShoulder = 4 * pi/3
 
-    sweepMinElbow = 144
-    sweepMaxElbow = 36
-    angleMinElbow = pi/4
-    angleMaxElbow = -pi/4
+    sweepMinElbow = 496
+    sweepMaxElbow = 807
+    angleMinElbow = pi/6
+    angleMaxElbow = pi
 
     angleMinGripper = pi/2
     angleMaxGripper = 0
@@ -46,7 +47,7 @@ def move(master, position):
     nowElbow = (position.elbowPos - sweepMinElbow)/(sweepMaxElbow - sweepMinElbow) * (abs(angleMaxElbow) + abs(angleMinBase))
     angles = [0,0,0]
 
-    opSpeed = speed["high"]
+    opSpeed = speed["med"]
     
     if kinematics.solve(master.x, master.y, master.z, angles):
         newBase = angles[0]
