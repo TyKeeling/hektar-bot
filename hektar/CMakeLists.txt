@@ -54,6 +54,8 @@ find_package(catkin REQUIRED COMPONENTS
    armPos.msg
    armTarget.msg
    armPotTargets.msg
+   IRarray.msg
+   wheelVelocity.msg
  )
 
 ## Generate services in the 'srv' folder
