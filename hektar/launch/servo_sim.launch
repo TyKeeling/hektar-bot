@@ -12,7 +12,8 @@
      </node>
 
     <node name="wheel_control_output" pkg="hektar" type="wheel_control.py" output="screen" >
-     <!-- <param name="plant_order" value="2" /> -->
+     <param name="speed" value="70" />
+	 <!-- <param name="plant_order" value="2" /> -->
     </node>
 
     <node name="setpoint_node" pkg="pid" type="setpoint_node" output="screen" />
