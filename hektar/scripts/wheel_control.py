@@ -4,6 +4,7 @@ from hektar.msg import wheelVelocity
 from std_msgs.msg import Float64
 
 speed = 70
+variation_factor = 1.0
 
 pub = rospy.Publisher('wheel_output', wheelVelocity, queue_size=1)
 
@@ -11,8 +12,8 @@ pub = rospy.Publisher('wheel_output', wheelVelocity, queue_size=1)
 
 def wheel_callback(feedback):
   wheels = wheelVelocity()
-  wheels.wheelL = speed + feedback.data 
-  wheels.wheelR = speed - feedback.data
+  wheels.wheelL = speed + feedback.data * variation_factor 
+  wheels.wheelR = speed - feedback.data * variation_factor
   rospy.loginfo(rospy.get_caller_id() + " Wheels: %d, %d", wheels.wheelL, wheels.wheelR)
   pub.publish(wheels)
 
