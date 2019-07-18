@@ -13,7 +13,7 @@
       <param name="upper_limit" value="100" />
       <param name="lower_limit" value="-100" />
       <param name="windup_limit" value="0" />
-      <param name="cutoff_frequency" value="20" />
+      <param name="cutoff_frequency" value="1" />
       <param name="max_loop_frequency" value="105.0" />
       <param name="min_loop_frequency" value="95.0" />
      </node>
