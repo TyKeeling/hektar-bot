@@ -15,14 +15,14 @@ pub = rospy.Publisher('state', Float64, queue_size=1)
 # Initilaize parameters
 
 def array_callback(msg):
-  sensor0 = 1023 - msg.ir_0
-  sensor1 = 1023 - msg.ir_1
-  sensor2 = 1023 - msg.ir_2
-  sensor3 = 1023 - msg.ir_3
-  sensor4 = 1023 - msg.ir_4
+  sensor0 = msg.ir_0
+  sensor1 = msg.ir_1
+  sensor2 = msg.ir_2
+  sensor3 = msg.ir_3
+  sensor4 = msg.ir_4
   
   pos = Float64()
-  pos.data = (sensor0 * -2 + sensor1 * -1 + sensor3 + sensor4 * 2) / ( 1.0 * (sensor1 + sensor1 + sensor2 + sensor3 + sensor4) )
+  pos.data = (sensor0 * -2 + sensor1 * -1 + sensor3 + sensor4 * 2) / ( 1.0 * (sensor0 + sensor1 + sensor2 + sensor3 + sensor4) )
   rospy.loginfo(rospy.get_caller_id() + " Error: %f", pos.data)
   pub.publish(pos)
 

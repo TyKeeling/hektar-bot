@@ -1,23 +1,36 @@
 #!/usr/bin/env python
 import rospy
+import math
 from hektar.msg import wheelVelocity 
 from std_msgs.msg import Float64
 from dynamic_reconfigure.server import Server
 from hektar.cfg import HektarConfig
 
+pub = rospy.Publisher("wheel_output", wheelVelocity, queue_size=1)
 
 class Callback():
   def __init__(self):
-    self.speed = 70
-    self.variation_factor = 0.5
+    self.speed = 0
+    self.variation_factor = 0.0
 
   def wheel_callback(self, feedback):
     wheels = wheelVelocity()
-    wheels.wheelL = self.speed + (feedback.data * self.variation_factor) 
-    wheels.wheelR = self.speed - (feedback.data * self.variation_factor)
-    rospy.loginfo(rospy.get_caller_id() + " Wheels: %d, %d", wheels.wheelL, wheels.wheelR)
+    a = self.speed + int(feedback.data * self.variation_factor) 
+    if a > 127:
+      a = 127
+    elif a < -127:
+      a = -127
+    wheels.wheelL = a
     
-    pub = rospy.Publisher("wheel_output", wheelVelocity, queue_size=1)
+    a = self.speed - int(feedback.data * self.variation_factor)                
+    if a > 127:
+      a = 127
+    elif a < -127:
+      a = -127
+    wheels.wheelR = a
+
+    rospy.loginfo(rospy.get_caller_id() + " Wheels: %f, %f", wheels.wheelL, wheels.wheelR)
+    
     pub.publish(wheels)
 
   # required to dynamically reconfigure parameters
@@ -34,7 +47,6 @@ def control():
   callbacker = Callback()
   srv = Server(HektarConfig, callbacker.callback)
   rospy.Subscriber('control_effort', Float64, callbacker.wheel_callback, queue_size=1, tcp_nodelay=False)   
-  
   rospy.spin()
 
 
