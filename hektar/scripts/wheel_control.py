@@ -32,7 +32,7 @@ class Callback():
     wheels.wheelR = max(LOWER_LIMIT, min(computed_speedR, UPPER_LIMIT))
 
     rospy.loginfo(rospy.get_caller_id() + " Wheels: %f, %f", wheels.wheelL, wheels.wheelR)
-    pub.publish(wheels)
+    self.pub.publish(wheels)
 
   # required to dynamically reconfigure parameters
   def callback(self, config, level):
