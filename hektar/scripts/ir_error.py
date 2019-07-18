@@ -10,22 +10,33 @@ from std_msgs.msg import Float64
 #
 #* ASSUME setpoint is 0 (center)
 
-pub = rospy.Publisher('state', Float64, queue_size=1)
+THRESHOLD = 500
 
-# Initilaize parameters
+pub = rospy.Publisher('state', Float64, queue_size=1)
+lastPos = Float64()
+lastPos.data = 0
+
 
 def array_callback(msg):
-  sensor0 = msg.ir_0
-  sensor1 = msg.ir_1
-  sensor2 = msg.ir_2
-  sensor3 = msg.ir_3
-  sensor4 = msg.ir_4
-  
+  sensors = [msg.ir_0, msg.ir_1, msg.ir_2, msg.ir_3, msg.ir_4]
   pos = Float64()
-  pos.data = (sensor0 * -2 + sensor1 * -1 + sensor3 + sensor4 * 2) / ( 1.0 * (sensor0 + sensor1 + sensor2 + sensor3 + sensor4) )
+
+  if above_threshold(sensors):
+    if lastPos.data > 1.5: 
+        pos.data = 6
+    elif lastPos.data < -1.5:
+        pos.data = -6
+  else: pos.data = sensors.index(min(sensors)) -2 
+
   rospy.loginfo(rospy.get_caller_id() + " Error: %f", pos.data)
+  lastPos.data = pos.data
   pub.publish(pos)
 
+def above_threshold(sensors):
+  for sensor in sensors:
+    if sensor < THRESHOLD:
+      return False
+  return True
 
 def control():
   rospy.init_node('ir_error', anonymous=True)
