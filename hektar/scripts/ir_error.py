@@ -10,7 +10,7 @@ from std_msgs.msg import Float64
 #
 #* ASSUME setpoint is 0 (center)
 
-THRESHOLD = 500
+THRESHOLD = 600
 
 pub = rospy.Publisher('state', Float64, queue_size=1)
 lastPos = Float64()
@@ -26,7 +26,7 @@ def array_callback(msg):
         pos.data = 6
     elif lastPos.data < -1.5:
         pos.data = -6
-  else: pos.data = sensors.index(min(sensors)) -2 
+  else: pos.data = -sensors.index(min(sensors)) +2 
 
   rospy.loginfo(rospy.get_caller_id() + " Error: %f", pos.data)
   lastPos.data = pos.data
