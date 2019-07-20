@@ -8,29 +8,35 @@ from std_msgs.msg import Int8
 
 
 pub = rospy.Publisher('ir_state', Int8, queue_size=1)
-threshold = 500
+threshold = 600
 
 
 def array_callback(msg):
   sensors = [msg.ir_0, msg.ir_1, msg.ir_2, msg.ir_3, msg.ir_4]
   path = Int8()
 
-  for val in sensors:
-    if val > threshold:
-        val = 0
+  
+  for val in range(len(sensors)):
+    if sensors[val] > threshold:
+        sensors[val] = 0
     else:
-        val = 1
+        sensors[val] = 1
 
-  if sensors == [1,0,1,0,0] or sensors == [0,1,0,1,0] or sensors == [0,0,1,0,1]:
+  if sensors == [1,0,1,0,0] or sensors == [0,1,0,1,0] \
+    or sensors == [0,0,1,0,1] or sensors == [1, 0, 0, 1, 0] \
+    or sensors == [0, 1, 0, 0, 1] or sensors == [1, 0, 0, 0, 1] \
+    or sensors == [1, 1, 0, 1, 0] or sensors == [0, 1, 0, 1, 1]:
+
     path.data = 1
-  elif sensors == [1,1,0,0,0] or sensors == [1,1,1,0,0] or sensors == [0,0,1,1,1] or sensors == [0,0,0,1,1]:
+  elif sensors == [1,1,0,0,0] or sensors == [1,1,1,0,0] \
+     or sensors == [0,0,1,1,1] or sensors == [0,0,0,1,1] \
+     or sensors == [0, 1, 1, 1, 1, ] or sensors == [1, 1, 1, 1, 0]:
     path.data = 2
   else:
     path.data = 0
   
 
-  rospy.loginfo(rospy.get_caller_id() + " ir_state mode: %d", pos.data)
-  lastPos.data = pos.data
+  rospy.loginfo(rospy.get_caller_id() + " ir_state mode: %d", path.data)
   pub.publish(path)
 
 
