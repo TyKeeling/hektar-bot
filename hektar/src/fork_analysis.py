@@ -5,7 +5,7 @@ from std_msgs.msg import Bool
 
 
 
-pub = rospy.Publisher('fork_feature', Bool, queue_size=1)
+pub = rospy.Publisher('line_feature', Bool, queue_size=1)
 threshold = 600
 
 
@@ -33,7 +33,7 @@ def array_callback(msg):
     path.data = False
   
 
-  rospy.loginfo(rospy.get_caller_id() + " ir_state mode: %d", path.data)
+  #rospy.loginfo(rospy.get_caller_id() + " ir_state mode: %d", path.data)
   pub.publish(path)
 
 

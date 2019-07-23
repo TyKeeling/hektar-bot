@@ -31,7 +31,7 @@ class Callback():
     computed_speedR = int(self.speed - (feedback.data * self.variation_factor))               
     wheels.wheelR = max(LOWER_LIMIT, min(computed_speedR, UPPER_LIMIT))
 
-    rospy.loginfo(rospy.get_caller_id() + " Wheels: %f, %f", wheels.wheelL, wheels.wheelR)
+    #rospy.loginfo(rospy.get_caller_id() + " Wheels: %f, %f", wheels.wheelL, wheels.wheelR)
     self.pub.publish(wheels)
 
   # required to dynamically reconfigure parameters

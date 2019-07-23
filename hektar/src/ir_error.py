@@ -14,10 +14,11 @@ from hektar.cfg import HektarConfig
 
 OFF_TAPE_ERROR = 6
 
+pub = rospy.Publisher('state', Float64, queue_size=1)
 
 class Ir_Error():
   def __init__(self):
-    self.pub = rospy.Publisher('state', Float64, queue_size=1)
+    #self.pub = rospy.Publisher('state', Float64, queue_size=1)
     self.threshold = 0
     self.lastPos = Float64()
     self.lastPos.data = 0
@@ -39,9 +40,9 @@ class Ir_Error():
     else:
         pos.data = -sensors.index(min(sensors)) + 2 
 
-    rospy.loginfo(rospy.get_caller_id() + " Error: %f", pos.data)
+    #rospy.loginfo(rospy.get_caller_id() + " Error: %f", pos.data)
     self.lastPos.data = pos.data
-    self.pub.publish(pos)
+    pub.publish(pos)
 
   def all_sensors_off_tape(self, sensors):
     for sensor in sensors:
