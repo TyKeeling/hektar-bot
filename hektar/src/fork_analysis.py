@@ -8,7 +8,7 @@ from std_msgs.msg import Bool
 pub = rospy.Publisher('line_feature', Bool, queue_size=1)
 threshold = 600
 i = 0
-N = 7
+N = 2
 boolist = [False] * N
 sentFlag = False
 send = Bool()
