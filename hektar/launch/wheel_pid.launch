@@ -13,9 +13,9 @@
       <param name="upper_limit" value="100" />
       <param name="lower_limit" value="-100" />
       <param name="windup_limit" value="0" />
-      <param name="cutoff_frequency" value="20" />
-      <param name="max_loop_frequency" value="105.0" />
-      <param name="min_loop_frequency" value="95.0" />
+      <param name="cutoff_frequency" value="10" />
+      <param name="max_loop_frequency" value="45.0" />
+      <param name="min_loop_frequency" value="35.0" />
      </node>
 
     <!-- <node name="wheel_control_output" pkg="hektar" type="wheel_control.py" output="screen" > 

@@ -61,6 +61,8 @@ generate_dynamic_reconfigure_options(
    armPotTargets.msg
    IRarray.msg
    wheelVelocity.msg
+   encoderPos.msg
+   Move.msg
  )
 
 ## Generate services in the 'srv' folder
