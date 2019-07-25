@@ -27,9 +27,9 @@
 
 import math
 
-L1 = 160 # Shoulder to elbow length
-L2 = 200 # Elbow to wrist length
-L3 = 35 + 70 # Wrist to hand plus base centre to shoulder
+L1 = 150 # Shoulder to elbow length
+L2 = 205 # Elbow to wrist length
+L3 = 50 + 40 # Wrist to hand plus base centre to shoulder
 	
 def cart2polar(x, y):
     # Determine magnitude of cartesian coordinates
