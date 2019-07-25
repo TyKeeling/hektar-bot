@@ -8,27 +8,31 @@ import kinematics
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size=10)
 
 # Initilaize parameters
-# Base measurements not yet taken
 sweepMinBase = 0
-sweepMaxBase = 512
-angleMinBase = -pi/4
-angleMaxBase = pi/4
+sweepMaxBase = 1024
+offsetBase = 0
 
-sweepMinShoulder = 248 # 800mV output
-sweepMaxShoulder = 621 # 2V output
-angleMinShoulder = pi / 2
-angleMaxShoulder = 5*pi/6
+sweepMinShoulder = 315  # mechanical min
+sweepMaxShoulder = 709  # mechanical max
+offsetShoulder = -254 # 256 minus value at pi/2
 
-sweepMinElbow = 186 # 600mV output
-sweepMaxElbow = 621  # 2V output
-angleMinElbow = -pi/4
-angleMaxElbow = pi/2
+sweepMinElbow = 218 # mechanical min
+sweepMaxElbow = 543  # mechanical max
+offsetElbow = -341 # offset for reading at angle 0
 
 angleMinGripper = pi/2
 angleMaxGripper = 0
 
 class Arm:
   def __init__(self):
+
+    self.integralBase = 0
+    self.integralElbow = 0
+    self.integralShoulder = 0
+
+    self.lastShoulderError = 0
+    self.lastElbowError = 0
+    self.lastBaseError = 0
 
     self.pots = None
     self.target = None
@@ -37,14 +41,18 @@ class Arm:
   def pots_callback(self, msg):
     # 'Store' pot values
     self.pots = msg
-    rospy.loginfo("IN: positions: \n base: %d, elbow: %d, shoulder: %d" % (self.pots.basePos, self.pots.elbowPos, self.pots.shoulderPos))
-    # output = self.get_vels()
-    output = self.get_pot_vels()
-    rospy.loginfo("OUT: shoulderVel: %d" % output.shoulderVel)
-    rospy.loginfo("OUT: elbowVel: %d" % output.elbowVel)
-    rospy.loginfo("OUT: baseVel: %d" % output.baseVel)
-    pub.publish(output)
-    rospy.sleep(1)	
+    # rospy.loginfo("IN: targets: \n base: %f, elbow: %d, shoulder: %d" % (self.target_pots.baseVal, self.target_pots.elbowVal, self.target_pots.shoulderVal))
+    rospy.loginfo("IN: basePos: %d, elbowPos: %d, shoulderPos: %d" % (self.pots.basePos, self.pots.elbowPos, self.pots.shoulderPos))
+    try:
+      output = self.get_vels()
+    #try:
+     # output = self.get_pot_vels()
+    except Exception as e:
+      output = armCtrl()
+      output.baseVel = output.shoulderVel = output.elbowVel = 0
+      rospy.loginfo(e)
+    rospy.loginfo("OUT: baseVel: %d, elbowVel: %d, shoulderVel: %d" % (output.baseVel, output.elbowVel, output.shoulderVel))
+    pub.publish(output)	
   
   def target_callback(self, msg):
   # 'Store' target values
@@ -59,112 +67,163 @@ class Arm:
   def target_pots_callback(self, msg):
     try:
       self.target_pots = msg
-      rospy.loginfo("IN: target pot vals: \n base: %d, elbow: %d, shoulder: %d" %(self.target_pots.baseVal, self.target_pots.elbowVal, self.target_pots.shoudlerVal))
-      output = self.get_pot_vels()
-      rospy.loginfo("OUT: shoulderVel: %d" % output.shoulderVel)
-      rospy.loginfo("OUT: elbowVel: %d" % output.elbowVel)
-      rospy.loginfo("OUT: baseVel: %d" % output.baseVel)
-      pub.publish(output)
-      rospy.sleep(1)
-    except:
-      rospy.loginfo("Error on target pot receipt")
+      rospy.log(msg)      
+#rospy.loginfo("TARGETS: base: %d, elbow: %d, shoulder: %d" %(self.target_pots.baseVal, self.target_pots.elbowVal, self.target_pots.shoulderVal))
+    except Exception as e:
+      rospy.loginfo(e)
 
   # Outputs desired velocities for all arm motors in the form of an armCtrl message.
   # Claw functionality can be easily added later. 
   #
   def get_vels(self):
-    try:
-      nowBase = (self.pots.basePos) / 162.9
-      nowShoulder = (self.pots.shoulderPos) / 162.9
-      nowElbow = (self.pots.elbowPos) / 162.9
-      rospy.loginfo("Angles: \n base: %f  elbow: %f  shoulder: %f" % (nowBase * 180/pi, nowElbow * 180/pi, nowShoulder * 180/pi))
-      
-      angles = [0,0,0]
+    nowBase = self.pots.basePos
+    nowShoulder = self.pots.shoulderPos
+    nowElbow = self.pots.elbowPos       
+    
+    angles = [0,0,0]
+    if kinematics.solve(float(self.target.x), float(self.target.y), float(self.target.z), angles):
+      newBase = angles[0]*162.9 - offsetBase
+      newShoulder = angles[1]*162.9 - offsetShoulder
+      newElbow = angles[2]*162.9 - offsetElbow
+        
+      errorBase = newBase - nowBase
+      errorShoulder= newShoulder - nowShoulder
+      errorElbow = newElbow - nowElbow
+     
+      rospy.loginfo("ERRORS: base: %d  elbow: %d shoulder: %d" % (errorBase, errorElbow, errorShoulder))
 
-      if kinematics.solve(float(self.target.x), float(self.target.y), float(self.target.z), angles):
-        newBase = angles[0]
-        newShoulder = angles[1]
-        newElbow = angles[2]
-        msg = armCtrl()
-	rospy.loginfo("Target angles: \n base: %f  elbow: %f  shoulder: %f" % (newBase * 180/pi, newElbow * 180/pi, newShoulder * 180/pi))
-        #set velocities nonzero if outside permitted error
-        if newBase > nowBase:
-	  msg.baseVel = min(127, 75 * (newBase - nowBase))
-	else:
-	  msg.baseVel = max(-127, 75 * (newBase - nowBase))
-	
-	if newElbow > nowElbow:
-          msg.elbowVel = min(127, 75 * (newElbow - nowElbow))
-        else:
-          msg.elbowVel = max(-127, 75 * (newElbow - nowElbow))
-
-	if newBase > nowBase:
-          msg.shoulderVel = min(127, 75 * (newShoulder - nowShoulder))
-        else:
-          msg.shoulderVel = max(-127, 75 * (newShoulder - nowShoulder))
-
-	# Security stops so arm doesn't destroy itself
-#	if not (380 < self.pots.shoulderPos < 1015):
-#	  rospy.loginfo("WARNING: Shoulder near mechanical limit. Stopping motor.")
-#	  msg.shoulderVel = 0
-#	if not (500 < self.pots.elbowPos < 800):
-#	  rospy.loginfo("WARNING: Elbow near mechanical limit. Stopping motor.")
-#	  msg.elbowVel = 0
-
-	
-    	return msg
-	    
-    except:
       msg = armCtrl()
-      msg.baseVel = msg.elbowVel = msg.shoulderVel = 0
+      rospy.loginfo("TARGETS:  base: %d  elbow: %d  shoulder: %d" % (newBase, newElbow, newShoulder))
+
+      setSpeed = 127
+      kpBase = 3
+      kpShoulder = 1.5
+      kpElbow = 3
+      kiBase = 0
+      kiShoulder = 0.5
+      kiElbow = 0.5	
+      kd = 0
+ 
+      rospy.loginfo("Base Integral: %d" % self.integralBase)
+      rospy.loginfo("Elbow Integral: %d" % self.integralElbow)
+      rospy.loginfo("Shoulder Integral: %d" % self.integralShoulder)
+
+      # define acceptable deviation
+      dev = 4
+	
+      #set velocities nonzero if outside permitted error
+      if errorBase > dev:
+        msg.baseVel = min(setSpeed, int(kpBase * errorBase + kiBase*self.integralBase))
+      elif (-1*dev <= errorBase <= dev):
+        self.integralBase = 0
+        msg.baseVel = 0
+      else: 
+        msg.baseVel = max(-1*setSpeed, int(kpBase * errorBase + kiBase*self.integralBase))
+
+      if errorElbow > dev:
+         msg.elbowVel = min(setSpeed, int(kpElbow * errorElbow +kiElbow*self.integralElbow))
+      elif (-1*dev <= errorElbow <= dev):
+        self.integralElbow = 0
+        msg.elbowVel = 0 
+      else:
+        msg.elbowVel = max(-1*setSpeed,int(kpElbow * errorElbow + kiElbow*self.integralElbow))
+
+      if errorShoulder > dev:
+        msg.shoulderVel = min(setSpeed, int(kpShoulder * errorShoulder + kiShoulder*self.integralShoulder))
+      elif (-1*dev <= errorShoulder <= dev):
+        self.integralShoudler = 0
+        msg.shoulderVel = 0
+      else:
+        msg.shoulderVel = max(-1*setSpeed, int(kpShoulder * errorShoulder + kiShoulder*self.integralShoulder))
+
+   # Security stops so arm doesn't destroy itself
+      if not (sweepMinShoulder < self.pots.shoulderPos < sweepMaxShoulder):
+        rospy.loginfo("WARNING: Shoulder near mechanical limit. Stopping motor.")
+	msg.shoulderVel = 0
+      if not (sweepMinElbow < self.pots.elbowPos < sweepMaxElbow):
+	rospy.loginfo("WARNING: Elbow near mechanical limit. Stopping motor.")
+	msg.elbowVel = 0	
+      
+      if (dev < abs(msg.elbowVel) < 50):
+        self.integralElbow = self.integralElbow + (errorElbow * 0.02)
+      if (dev < abs(errorShoulder) < 50):
+        self.integralShoulder = self.integralShoulder + (errorShoulder * 0.02)
+      if (dev < abs(errorBase) < 40):
+        self.integralBase = self.integralBase + (errorBase * 0.02)
+
+      if (msg.shoulderVel == 0):
+	self.integralShoulder = 0
+
+      if(msg.shoulderVel > 127):
+	msg.shoulderVel = 127
+      if(msg.shoulderVel < -127):
+	msg.shoulderVel = -127
+		
+      if(abs(256 - offsetShoulder - self.pots.shoulderPos) > 15):
+	self.integralShoulder = 0
+      
       return msg
+    msg = armCtrl()
+    rospy.loginfo("ERROR: kinematics did not work")
+    msg.baseVel = msg.shoulderVel = msg.elbowVel = 0
+    return msg
 
   def get_pot_vels(self):
     try:
       nowBase = self.pots.basePos
       nowShoulder = self.pots.shoulderPos
-      nowElbow = self.pots.elbowPos
-      rospy.loginfo("Current: \n base: %f  elbow: %f  shoulder: %f" % (nowBase, nowElbow, nowShoulder))
- 
-      newBase = self.target_pots.baseVal 
-      newShoulder = self.target_pots.shoulderVal
-      newElbow = self.target_pots.elbowVal
-      msg = armCtrl()
-      rospy.loginfo("Targets: \n base: %f  elbow: %f  shoulder: %f" % (newBase, newElbow, newShoulder))
-        
-      kp = 3
+      nowElbow = self.pots.elbowPos      
+      setSpeed = 127
+      kp = 2
+      ki = 0
+
+      errorBase = self.target_pots.baseVal - nowBase
+      errorShoulder = self.target_pots.shoulderVal - nowShoulder
+      errorElbow = self.target_pots.elbowVal - nowElbow
+      
+      self.integralElbow = self.integralElbow + (errorElbow * 0.02)
+      self.integralShoulder = self.integralShoulder + (errorShoulder * 0.02)
+      self.integralBase = self.integralBase + (errorBase * 0.02)
+
       #set velocities nonzero if outside permitted error
-      if newBase > nowBase:
-        msg.baseVel = min(127, kp * (newBase - nowBase))
+      if errorBase > 0:
+        msg.baseVel = min(setSpeed, int(kp * errorBase + ki*self.integralBase))
+      elif errorBase == 0:
+        self.integralBase = 0
+        msg.baseVel = 0
       else:
-        msg.baseVel = max(-127, kp * (newBase - nowBase))
+        msg.baseVel = max(-1*setSpeed, int(kp * errorBase + ki*self.integralBase))
 
-      if newElbow > nowElbow:
-        msg.elbowVel = min(127, kp * (newElbow - nowElbow))
+      if errorElbow > 0:
+        msg.elbowVel = min(setSpeed, int(kp * errorElbow + ki*self.integralElbow))
+      elif errorElbow == 0:
+        self.integralElbow = 0
+        msg.elbowVel = 0
       else:
-        msg.elbowVel = max(-127, kp * (newElbow - nowElbow))
+        msg.elbowVel = max(-1*setSpeed,int(kp * errorElbow + ki*self.integralElbow))
 
-      if newShoulder > nowShoulder:
-        msg.shoulderVel = min(127, kp * (newShoulder - nowShoulder))
+      if errorShoulder > 0:
+        msg.shoulderVel = min(setSpeed, int(kp * errorShoulder + ki*self.integralShoulder))
+      elif errorShoulder == 0:
+        self.integralShoudler = 0
+        msg.ShoulderVel = 0
       else:
-        msg.shoulderVel = max(-127, kp * (newShoulder - nowShoulder))
+        msg.shoulderVel = max(-1*setSpeed, int(kp * errorShoulder + ki*self.integralShoulder))
 
     # Security stops so arm doesn't destroy itself
-    #       if not (380 < self.pots.shoulderPos < 1015):
-    #         rospy.loginfo("WARNING: Shoulder near mechanical limit. Stopping motor.")
-    #         msg.shoulderVel = 0
-    #       if not (500 < self.pots.elbowPos < 800):
-    #         rospy.loginfo("WARNING: Elbow near mechanical limit. Stopping motor.")
-    #         msg.elbowVel = 0
+      if not (sweepMinShoulder < self.pots.shoulderPos < sweepMaxShoulder):
+        rospy.loginfo("WARNING: Shoulder near mechanical limit. Stopping motor.")
+        msg.shoulderVel = 0
+      if not (sweepMinElbow < self.pots.elbowPos < sweepMaxElbow):
+        rospy.loginfo("WARNING: Elbow near mechanical limit. Stopping motor.")
+        msg.elbowVel = 0
       return msg
 
-    except:
+    except Exception as e:
       msg = armCtrl()
-      msg.baseVel = msg.elbowVel = msg.shoulderVel = 0
-      return msg
-
-
-		
+      rospy.loginfo(e)
+      # msg.baseVel = msg.elbowVel = msg.shoulderVel = 0
+      return msg		
 
 #def callback(data):
  # rospy.loginfo("IN: elbowPos: %d" % (data.elbowPos))
@@ -176,10 +235,9 @@ def control():
 
   arm = Arm();
 
-  rospy.Subscriber('claw_target', armTarget, arm.target_callback, queue_size=1, tcp_nodelay=False)  
+  rospy.Subscriber('claw_target', armTarget, arm.target_callback, queue_size=1, tcp_nodelay=False)
+  rospy.Subscriber('pot_targets', armPotTargets, arm.target_pots_callback, queue_size=1, tcp_nodelay=False)
   rospy.Subscriber('arm_positions', armPos, arm.pots_callback, queue_size=1, tcp_nodelay=False)
-  rospy.Subscriber('pot_targets', armPotTargets, arm.target_pots_callback, queue_size=1, tcp_nodelay=False) 
- 
   rospy.spin()
 
 if __name__ == '__main__':
