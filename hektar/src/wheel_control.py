@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import rospy
-import math
 from hektar.msg import wheelVelocity 
 from std_msgs.msg import Float64
 from dynamic_reconfigure.server import Server
@@ -21,14 +20,25 @@ class Callback():
 
   def wheel_callback(self, feedback):
     wheels = wheelVelocity()
-    
+    delta_L = 0
+    delta_R = 0
+
     # scalar and addition offsets for left wheel to account for wheel speed
     # discrepancies
     computed_speedL = int((self.speed + (feedback.data * self.variation_factor)) \
       * self.offset_multiplier + self.offset_addition)
-    wheels.wheelL = max(LOWER_LIMIT, min(computed_speedL, UPPER_LIMIT))
+    if computed_speedL > UPPER_LIMIT:
+      delta_L = computed_speedL - UPPER_LIMIT  
     
     computed_speedR = int(self.speed - (feedback.data * self.variation_factor))               
+    if computed_speedR > UPPER_LIMIT:
+      delta_R = computed_speedR - UPPER_LIMIT
+    
+    # difference between wheel speeds must be kept constant, so if one wheel goes above 
+    # the max allowed speed value, this difference must be subtracted from the other wheel
+    computed_speedR -= delta_L
+    computed_speedL -= delta_R
+    wheels.wheelL = max(LOWER_LIMIT, min(computed_speedL, UPPER_LIMIT))
     wheels.wheelR = max(LOWER_LIMIT, min(computed_speedR, UPPER_LIMIT))
 
     #rospy.loginfo(rospy.get_caller_id() + " Wheels: %f, %f", wheels.wheelL, wheels.wheelR)
