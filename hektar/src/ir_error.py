@@ -35,7 +35,7 @@ class Ir_Error():
     sensors_threshold = []
 
     for val in range(len(sensors)):
-      if sensors[val] > threshold:
+      if sensors[val] > self.threshold:
         sensors_threshold.append(0)
       else:
         sensors_threshold.append(1)
@@ -55,14 +55,17 @@ class Ir_Error():
       self.feature_hit[self.feature_increment] = False
     
     # all(): built in python function that returns True if all elements in a list are True
+    # this if statement means that every element in the list is True
     if all(self.feature_hit) and not self.sentFlag:
       self.feature_pub.publish(send)
       rospy.loginfo("Analysis: feature hit. ")
       self.sentFlag = True
     
     # any(): built in python function that returns True if any element in a list is True
+    # this elif statement means that every element in the list is False
     elif not any(self.feature_hit):
-      self.sentFlag = False
+      rospy.loginfo("reset flag hit")
+      self.sentFlag = False      
 
     self.feature_increment = (self.feature_increment + 1) % FEATURE_SIZE
 
