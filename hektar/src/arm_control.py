@@ -4,6 +4,7 @@ from hektar.msg import armCtrl, armPos, armTarget, armPotTargets
 import time
 from math import pi
 import kinematics
+import sys
 
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size=10)
 
@@ -48,6 +49,7 @@ class Arm:
     #try:
      # output = self.get_pot_vels()
     except Exception as e:
+      rospy.loginfo("Exception: {} \n On line number: {}".format(e, sys.exc_info()[-1].tb_lineno))
       output = armCtrl()
       output.baseVel = output.shoulderVel = output.elbowVel = 0
       rospy.loginfo(e)
@@ -70,7 +72,7 @@ class Arm:
       rospy.log(msg)      
 #rospy.loginfo("TARGETS: base: %d, elbow: %d, shoulder: %d" %(self.target_pots.baseVal, self.target_pots.elbowVal, self.target_pots.shoulderVal))
     except Exception as e:
-      rospy.loginfo(e)
+      rospy.loginfo("Exception: {} \n On line number: {}".format(e, sys.exc_info()[-1].tb_lineno))
 
   # Outputs desired velocities for all arm motors in the form of an armCtrl message.
   # Claw functionality can be easily added later. 
@@ -81,12 +83,15 @@ class Arm:
     nowElbow = self.pots.elbowPos       
     
     angles = [0,0,0]
+    
     # replacing base solving with x = 0 so we can use x message for base pot val
-    if kinematics.solve(0, float(self.target.y), float(self.target.z), angles):
-    #  newBase = angles[0]*162.9 - offsetBase
+    if kinematics.solve(float(0), float(self.target.y), float(self.target.z), angles):
+     # rospy.loginfo("entered kinematics if statement")  
+    # newBase = angles[0]*162.9 - offsetBase
       newShoulder = angles[1]*162.9 - offsetShoulder
+      #rospy.loginfo("angles[1] reached")
       newElbow = angles[2]*162.9 - offsetElbow
-        
+      #rospy.loginfo("angles[2] reached")    
     # errorBase = newBase - nowBase
       errorBase = self.target.x - nowBase
       errorShoulder= newShoulder - nowShoulder
@@ -98,10 +103,10 @@ class Arm:
       rospy.loginfo("TARGETS:  base: %d  elbow: %d  shoulder: %d" % (nowBase + errorBase, newElbow, newShoulder))
 
       setSpeed = 127
-      kpBase = .2
+      kpBase = 0.25
       kpShoulder = 1      
       kpElbow = 2
-      kiBase = 1
+      kiBase = 0
       kiShoulder = 0
       kiElbow = 0	
       kd = 0
@@ -115,12 +120,12 @@ class Arm:
 	
       #set velocities nonzero if outside permitted error
       if errorBase > dev:
-        msg.baseVel = min(40, int(kpBase * errorBase + kiBase*self.integralBase))
+        msg.baseVel = min(25, int(kpBase * errorBase + kiBase*self.integralBase))
       elif (-1*dev <= errorBase <= dev):
         self.integralBase = 0
         msg.baseVel = 0
       else: 
-        msg.baseVel = max(-1*40, int(kpBase * errorBase + kiBase*self.integralBase))
+        msg.baseVel = max(-1*25, int(kpBase * errorBase + kiBase*self.integralBase))
 
       if errorElbow > dev:
          msg.elbowVel = min(setSpeed, int(kpElbow * errorElbow +kiElbow*self.integralElbow))
@@ -223,7 +228,7 @@ class Arm:
 
     except Exception as e:
       msg = armCtrl()
-      rospy.loginfo(e)
+      rospy.loginfo("Exception: {} \n On line number: {}".format(e, sys.exc_info()[-1].tb_lineno))
       # msg.baseVel = msg.elbowVel = msg.shoulderVel = 0
       return msg		
 
