@@ -15,15 +15,53 @@ class Master():
 
     self.featuresHit = 0
     self.left = True
+    self.collided = False
 
-  # outoputs the  number of encoder ticks   
+  # outputs the number of encoder ticks   
   # thinking that one wheel moving one tick is about 1.14 deg or 2.3 for both 
   # also 66 ticks makes one full revolution of the wheel. 
   def send_position(self, leftWheel, rightWheel): 
     rospy.loginfo("Feature %d identified. Sleeping.", self.featuresHit)
     rospy.sleep(2) 
 
+  def collision_callback(self, msg):
+    self.collided = True
+    rospy.loginfo("Collision detected!")
+
+    enabler = Bool()
+    enabler.data = False
+    self.enable.publish(enabler)
+    #write 0 speed
+    stop = wheelVelocity()
+    stop.wheelL = stop.wheelR = 0
+    rospy.sleep(0.03) # solution to avoid wheel_control_output collisions
+                      # there is some latency from Pid to wheel control output 
+                      # which was leading to messages being sent after stop
+    self.wheels.publish(stop)
+    rospy.sleep(0.5)
+
+    motion = wheelVelocity()
+
+    # now what - do we back up? turn around? keep driving? check we are still on tape?? spin until we find tape?
+    # seems like the strat should be that we 180 if we hit someone after the beeline to go collect stones, but if we hit someone during the beeline we just slightly change trajectory and continue
+    # otherwise, just wait and keep going?
+
+    # for now, let's just turn in place.
+    motion.wheelL = 30
+    motion.wheelR = -30
+    self.wheels.publish(motion)
+    rospy.sleep(1) #random guess - is this enough time to turn significantly?
+    
+    self.wheels.publish(stop)
+    
+    enabler.data = True
+    self.enable.publish(enabler)
+
+    self.collided = False
+
   def fork_analysis_callback(self, msg):
+    if self.collided: return
+
     rospy.loginfo("fork analysis callback called")
     enabler = Bool()
     enabler.data = False
@@ -31,17 +69,22 @@ class Master():
     #write 0 speed
     stop = wheelVelocity()
     stop.wheelL = stop.wheelR = 0
+    rospy.sleep(0.03) # solution to avoid wheel_control_output collisions
+                      # there is some latency from Pid to wheel control output 
+                      # which was leading to messages being sent after stop
+    
+    if self.collided: return
 
-    rospy.sleep(0.03) #solution to avoid wheel_control_output collisions
-                      #there is some latency from PId to wheel control outptu
-                      #which was leading to messages being sent after stop.
     self.wheels.publish(stop)
     rospy.sleep(0.5)
+
+    if self.collided: return
+
     motion = wheelVelocity()
 
     #if the tape triggers a stop then we will have to add a pass for no. 2
     if self.left:
-      if   self.featuresHit == 0: 
+      if self.featuresHit == 0: 
         motion.wheelL = 0
         motion.wheelR = 30
         self.wheels.publish(motion)
@@ -52,7 +95,8 @@ class Master():
         motion.wheelR = 30
         self.wheels.publish(motion)
         rospy.sleep(0.3) 
-        self.wheels.publish(stop)
+        if self.collided: return
+	self.wheels.publish(stop)
         speedVal = Int8(data=40)
         self.speed.publish(speedVal)
       elif self.featuresHit == 2: 
@@ -60,7 +104,7 @@ class Master():
         # come claw action: pickup (potd, potb, potbase)
         # but now I'm wondering if PID control should be used here 
         # so that the bot is further alligned.
-
+    
     self.featuresHit = self.featuresHit + 1
 
     enabler.data = True
@@ -75,6 +119,7 @@ def control():
  
   master = Master()
 
+  rospy.Subscriber('collision', Bool, master.collision_callback, queue_size=1)
   rospy.Subscriber('line_feature', Bool, master.fork_analysis_callback, queue_size=1, tcp_nodelay=False)   
   rospy.spin()
 
