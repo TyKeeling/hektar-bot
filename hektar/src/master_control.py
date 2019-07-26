@@ -15,7 +15,7 @@ class Master():
 
     self.featuresHit = 0
     self.left = True
-	self.collided = False
+    self.collided = False
 
   # outputs the number of encoder ticks   
   # thinking that one wheel moving one tick is about 1.14 deg or 2.3 for both 
@@ -27,36 +27,36 @@ class Master():
   def collision_callback(self, msg):
     self.collided = True
     rospy.loginfo("Collision detected!")
-	disable_pid_and_stop()
+    disable_pid_and_stop()
 
-	motion = wheelVelocity()
+    motion = wheelVelocity()
 
     # now what - do we back up? turn around? keep driving? check we are still on tape?? spin until we find tape?
     # seems like the strat should be that we 180 if we hit someone after the beeline to go collect stones, but if we hit someone during the beeline we just slightly change trajectory and continue
-	# otherwise, just wait and keep going?
+    # otherwise, just wait and keep going?
 
     # for now, let's just turn in place.
-	motion.wheelL = 30
-	motion.wheelR = -30
-	self.wheels.publish(motion)
-	rospy.sleep(1) #random guess - is this enough time to turn significantly?
-	self.wheels.publish(stop)
+    motion.wheelL = 30
+    motion.wheelR = -30
+    self.wheels.publish(motion)
+    rospy.sleep(1) #random guess - is this enough time to turn significantly?
+    self.wheels.publish(stop)
     
-	self.collided = False
+    self.collided = False
 
   def fork_analysis_callback(self, msg):
-    return if self.collided
+    if self.collided: return
 
-	rospy.loginfo("fork analysis callback called")
+    rospy.loginfo("fork analysis callback called")
     disable_pid_and_stop()
 
-    return if self.collided
+    if self.collided: return
 
     motion = wheelVelocity()
 
     #if the tape triggers a stop then we will have to add a pass for no. 2
     if self.left:
-      if   self.featuresHit == 0: 
+      if self.featuresHit == 0: 
         motion.wheelL = 0
         motion.wheelR = 30
         self.wheels.publish(motion)
@@ -67,8 +67,8 @@ class Master():
         motion.wheelR = 30
         self.wheels.publish(motion)
         rospy.sleep(0.3) 
-        return if self.collided
-		self.wheels.publish(stop)
+        if self.collided: return
+	self.wheels.publish(stop)
         speedVal = Int8(data=40)
         self.speed.publish(speedVal)
       elif self.featuresHit == 2: 
