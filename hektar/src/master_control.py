@@ -27,7 +27,18 @@ class Master():
   def collision_callback(self, msg):
     self.collided = True
     rospy.loginfo("Collision detected!")
-    disable_pid_and_stop()
+
+    enabler = Bool()
+    enabler.data = False
+    self.enable.publish(enabler)
+    #write 0 speed
+    stop = wheelVelocity()
+    stop.wheelL = stop.wheelR = 0
+    rospy.sleep(0.03) # solution to avoid wheel_control_output collisions
+                      # there is some latency from Pid to wheel control output 
+                      # which was leading to messages being sent after stop
+    self.wheels.publish(stop)
+    rospy.sleep(0.5)
 
     motion = wheelVelocity()
 
@@ -40,15 +51,32 @@ class Master():
     motion.wheelR = -30
     self.wheels.publish(motion)
     rospy.sleep(1) #random guess - is this enough time to turn significantly?
+    
     self.wheels.publish(stop)
     
+    enabler.data = True
+    self.enable.publish(enabler)
+
     self.collided = False
 
   def fork_analysis_callback(self, msg):
     if self.collided: return
 
     rospy.loginfo("fork analysis callback called")
-    disable_pid_and_stop()
+    enabler = Bool()
+    enabler.data = False
+    self.enable.publish(enabler)
+    #write 0 speed
+    stop = wheelVelocity()
+    stop.wheelL = stop.wheelR = 0
+    rospy.sleep(0.03) # solution to avoid wheel_control_output collisions
+                      # there is some latency from Pid to wheel control output 
+                      # which was leading to messages being sent after stop
+    
+    if self.collided: return
+
+    self.wheels.publish(stop)
+    rospy.sleep(0.5)
 
     if self.collided: return
 
@@ -86,25 +114,12 @@ class Master():
 #    return config
 
 
-def disable_pid_and_stop():
-  enabler = Bool()
-  enabler.data = False
-  self.enable.publish(enabler)
-  #write 0 speed
-  stop = wheelVelocity()
-  stop.wheelL = stop.wheelR = 0
-  rospy.sleep(0.03) # solution to avoid wheel_control_output collisions
-                    # there is some latency from Pid to wheel control output 
-                    # which was leading to messages being sent after stop
-  self.wheels.publish(stop)
-  rospy.sleep(0.5)
-
-
 def control():
   rospy.init_node('control_master', anonymous=True)
  
   master = Master()
 
+  rospy.Subscriber('collision', Bool, master.collision_callback, queue_size=1)
   rospy.Subscriber('line_feature', Bool, master.fork_analysis_callback, queue_size=1, tcp_nodelay=False)   
   rospy.spin()
 
