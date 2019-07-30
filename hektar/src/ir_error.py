@@ -3,7 +3,7 @@ import rospy
 from hektar.msg import IRarray
 from std_msgs.msg import Float64, Bool
 from dynamic_reconfigure.server import Server
-from hektar.cfg import HektarConfig
+from hektar.cfg import Ir_ErrorConfig
 
 # PARAMS and ASSUMPTIONS
 #* Input: array of IR sensor vals (0-1024)
@@ -96,7 +96,7 @@ def control():
   rospy.init_node('ir_error', anonymous=True)
   
   callbacker = Ir_Error()
-  srv = Server(HektarConfig, callbacker.callback)
+  srv = Server(Ir_ErrorConfig, callbacker.callback)
   rospy.Subscriber('ir_array', IRarray, callbacker.array_callback, queue_size=1, tcp_nodelay=False)   
   rospy.spin()
 

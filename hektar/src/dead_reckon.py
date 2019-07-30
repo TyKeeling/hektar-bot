@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from hektar.msg import encoderPos, wheelVelocity, Move
-from hektar.cfg import HektarConfig
+from hektar.cfg import DeadReckonConfig
 from dynamic_reconfigure.server import Server
 from std_msgs.msg import Bool
 
@@ -68,7 +68,7 @@ def control():
   rospy.init_node("dead_reckon", anonymous=True)
 
   reckoner = Dead_Reckon()
-  dynam_srv = Server(HektarConfig, reckoner.dynamic_callback)
+  dynam_srv = Server(DeadReckonConfig, reckoner.dynamic_callback)
   rospy.Subscriber('encoder_pos', encoderPos, reckoner.drive_callback, queue_size=1, tcp_nodelay=False)
   rospy.Subscriber('move', Move, reckoner.move_callback, queue_size=1, tcp_nodelay=False)
 
