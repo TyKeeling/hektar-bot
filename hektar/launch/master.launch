@@ -10,7 +10,9 @@
      <param name="speed" value="70" />
    </node>
 
-   <node name="ir_fork_analysis" pkg="hektar" type="fork_analysis.py" output="screen" />
+   <node name="ir_error_node" pkg="hektar" type="ir_error.py" output="screen" />
 
-   <node name="control_master" pkg="hektar" type="master_control.py" output="screen" />
+   <!-- <node name="ir_fork_analysis" pkg="hektar" type="fork_analysis.py" output="screen" /> -->
+
+   <!-- <node name="control_master" pkg="hektar" type="master_control.py" output="screen" /> -->
 </launch>
