@@ -23,6 +23,10 @@ angleMaxGripper = 0
 class Arm:
   def __init__(self):
 
+    self.theta = None
+    self.r = None
+    self.z = None
+
     self.integralElbow = 0
     self.integralShoulder = 0
 
@@ -81,6 +85,11 @@ class Arm:
 
       errorShoulder= newShoulder - nowShoulder
       errorElbow = newElbow - nowElbow
+
+      self.theta, self.r, self.z = unsolve(0, angles[1], angles[2])
+      self.theta = self.target.theta
+
+      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (self.theta, self.r, self.z))
      
       rospy.loginfo("ERRORS: elbow: %d shoulder: %d" % (errorElbow, errorShoulder))
 
@@ -141,6 +150,8 @@ class Arm:
       if(abs(256 + offsetShoulder - self.pots.shoulderPos) > 15):
 	      self.integralShoulder = 0
       
+
+      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (theta, r, z))rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (theta, r, z))
       return msg
     msg = armCtrl()
     rospy.loginfo("ERROR: kinematics did not work")
