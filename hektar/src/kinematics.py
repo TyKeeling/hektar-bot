@@ -98,7 +98,7 @@ def solve(x, y, z, angles):
 	
     angles[0] = a0
     angles[1] = a1
-    angles[2] = a2
+    angles[2] = -a2
 	
     return True
 	
