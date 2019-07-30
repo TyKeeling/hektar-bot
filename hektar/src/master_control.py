@@ -12,6 +12,8 @@ class Master():
     self.enable = rospy.Publisher('pid_enable', Bool, queue_size=1)
     self.wheels = rospy.Publisher("wheel_output", wheelVelocity, queue_size=1)
     self.speed  = rospy.Publisher("set_speed", Int8, queue_size=1)
+    self.speed.publish(99)
+    
 
     self.featuresHit = 0
     self.left = True
@@ -80,25 +82,20 @@ class Master():
 
     if self.collided: return
 
-    motion = wheelVelocity()
+    rospy.loginfo("Feature %d identified. Sleeping.", self.featuresHit)
 
     #if the tape triggers a stop then we will have to add a pass for no. 2
     if self.left:
-      if self.featuresHit == 0: 
-        motion.wheelL = 0
-        motion.wheelR = 30
-        self.wheels.publish(motion)
-        rospy.sleep(0.3) # random guess  
+      if self.featuresHit == 0 or True: 
+        self.wheels.publish(0, 30)
+        rospy.sleep(2.3) # random guess  
         self.wheels.publish(stop)
       elif self.featuresHit == 1: 
-        motion.wheelL = 30
-        motion.wheelR = 30
-        self.wheels.publish(motion)
-        rospy.sleep(0.3) 
-        if self.collided: return
+        self.wheels.publish(20, 40)
+        rospy.sleep(2.3) 
+        #if self.collided: return
 	self.wheels.publish(stop)
-        speedVal = Int8(data=40)
-        self.speed.publish(speedVal)
+        self.speed.publish(65)
       elif self.featuresHit == 2: 
         self.wheels.publish(stop)
         # come claw action: pickup (potd, potb, potbase)
