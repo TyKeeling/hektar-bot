@@ -13,7 +13,7 @@ from hektar.cfg import HektarConfig
 
 
 OFF_TAPE_ERROR = 6
-FEATURE_SIZE = 2
+FEATURE_SIZE = 4
 
 
 class Ir_Error():
@@ -64,7 +64,7 @@ class Ir_Error():
     # any(): built in python function that returns True if any element in a list is True
     # this elif statement means that every element in the list is False
     elif not any(self.feature_hit):
-      rospy.loginfo("reset flag hit")
+      #rospy.loginfo("reset flag hit")
       self.sentFlag = False      
 
     self.feature_increment = (self.feature_increment + 1) % FEATURE_SIZE
