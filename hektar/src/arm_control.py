@@ -80,8 +80,8 @@ class Arm:
     
     # replacing base solving with x = 0 so we can use x message for base pot val
     if kinematics.solve(float(0), float(self.target.r), float(self.target.z), angles):
-      newShoulder = angles[1]*162.9 + offsetShoulder
-      newElbow = angles[2]*162.9 + offsetElbow
+      newShoulder = -(angles[1]-math.pi)*162.9 - offsetShoulder
+      newElbow = (angles[2]*162.9) - offsetElbow
 
       errorShoulder= newShoulder - nowShoulder
       errorElbow = newElbow - nowElbow
