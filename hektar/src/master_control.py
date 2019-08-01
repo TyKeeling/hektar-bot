@@ -2,16 +2,21 @@
 import rospy
 from dynamic_reconfigure.server import Server
 from std_msgs.msg import Bool, Int8
-from hektar.msg import wheelVelocity
+from hektar.msg import wheelVelocity, armTarget, Claw
 from hektar.cfg import HektarConfig
-
+from arm_targets import Target
 # Master control header. This node takes the state of features in the course and dictates arm and wheel motion.
+
+# Arm positions
+
 
 class Master():
   def __init__(self):
     self.enable = rospy.Publisher('pid_enable', Bool, queue_size=1)
     self.wheels = rospy.Publisher("wheel_output", wheelVelocity, queue_size=1)
     self.speed  = rospy.Publisher("set_speed", Int8, queue_size=1)
+    self.claw = rospy.Publisher("grabber", Claw, queue_size = 1) # publish angle from 0-180 for claw open/close
+    self.arm = rospy.Publisher("claw_target", armTarget, queue_size=1) # message in cylindrical coordinates
     self.speed.publish(99)
     
 
@@ -45,8 +50,8 @@ class Master():
     motion = wheelVelocity()
 
     # now what - do we back up? turn around? keep driving? check we are still on tape?? spin until we find tape?
-    # seems like the strat should be that we 180 if we hit someone after the beeline to go collect stones, but if we hit someone during the beeline we just slightly change trajectory and continue
-    # otherwise, just wait and keep going?
+    # seems like the strat should be that we 180 if we hit someone after the beeline to go collect stones, but if we hit 
+    # someone during the beeline we just slightly change trajectory and continue, otherwise just wait and keep going?
 
     # for now, let's just turn in place.
     motion.wheelL = 30
@@ -94,13 +99,33 @@ class Master():
         self.wheels.publish(20, 40)
         rospy.sleep(2.3) 
         #if self.collided: return
-	self.wheels.publish(stop)
+	      #self.wheels.publish(stop)
         self.speed.publish(65)
       elif self.featuresHit == 2: 
         self.wheels.publish(stop)
-        # come claw action: pickup (potd, potb, potbase)
+        # open left claw
+        leftGrip = Claw()
+        leftGrip.posL = 180
+        # align arm
+        target = armTarget()
+        target.theta = -90
+        target.r = 250
+        target.z = 100
+        self.arm.publish(target)
+        rospy.sleep(3)
+        #lower arm
+        target.z = 80
+        self.arm.publish(target)
+        rospy.sleep(1)
+        # close left claw
+        self.claw.publish(leftGrip)
+        rospy.sleep(1)
+        # lift stone away
+        target.z = 120
+        self.arm.publish(target)
+
         # but now I'm wondering if PID control should be used here 
-        # so that the bot is further alligned.
+        # so that the bot is further aligned.
     
     self.featuresHit = self.featuresHit + 1
 
