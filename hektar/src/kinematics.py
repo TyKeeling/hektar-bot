@@ -106,7 +106,7 @@ def solve(x, y, z, angles):
 
 def polar2cart(r, theta):
     a = r * math.cos(theta)
-    b = r * sin(theta)
+    b = r * math.sin(theta)
     return a,b
 	
 def distance(x1, y1, z1, x2, y2, z2):
