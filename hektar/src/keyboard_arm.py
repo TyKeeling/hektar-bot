@@ -6,12 +6,18 @@
 from __future__ import print_function
 import rospy
 import roslib
+from hektar.msg import armPos
+import kinematics
+import math
 
 from hektar.msg import armCtrl
 
 import sys, select, termios, tty
 
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size = 10)
+
+offsetShoulder = -254
+offsetElbow = -330
 
 settings = termios.tcgetattr(sys.stdin)
 
@@ -47,6 +53,16 @@ class Servo:
     self.angle = angle
 
       
+def location_callback(msg):
+  theta, r, z = kinematics.unsolve(0, math.pi - (msg.shoulderPos + offsetShoulder)/162.9, -(msg.elbowPos + offsetElbow)/162.9)
+  rospy.loginfo("Location: r: %d z: %d" % (r, z))
+  angles = [0,0,0]
+  kinematics.solve(float(0), float(r), float(z), angles)
+  newShoulder = -(angles[1]-math.pi)*162.9 - offsetShoulder
+  newElbow = (angles[2]*162.9) - offsetElbow
+  rospy.loginfo("Solved pot vals: shoulder: %d, elbow:%d" % (newShoulder, newElbow))
+
+
 	
 def getKey():
     tty.setraw(sys.stdin.fileno())
@@ -62,6 +78,8 @@ def control():
 
     servo = Servo()
     servo.setAngle(90)
+
+    rospy.Subscriber('arm_positions', armPos, location_callback, queue_size=1, tcp_nodelay=False)
 
     rospy.loginfo("reset!")
 
