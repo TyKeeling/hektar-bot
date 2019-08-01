@@ -59,10 +59,11 @@ def getKey():
 
 
 def control():
-    rospy.init_node('keyboard_arm', anonymous=True)
 
     servo = Servo()
     servo.setAngle(90)
+
+    rospy.loginfo("reset!")
 
 
     turn = 0
@@ -101,6 +102,7 @@ def control():
 
 if __name__=="__main__":
     try:
+      rospy.init_node('keyboard_arm', anonymous=True)
       termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
       control()
 
