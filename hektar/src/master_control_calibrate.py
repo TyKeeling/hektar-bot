@@ -89,7 +89,7 @@ class Master():
 
       elif self.featuresHit == 2: # First T: pickup stone
         self.wheels.publish(stop)
-
+        rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
         # BEGIN: Sequence for Claw Calibration
         while !self.left:
             rospy.spin()
