@@ -24,7 +24,7 @@ baseMsg = """
 Reading from the keyboard  and publishing to arm_commands
 ---------------------------
 Moving around:
-    u    i 
+    u    i
  h   j    k    l
 
 anything else : stop
@@ -32,7 +32,7 @@ CTRL-C to quit
 """
 
 moveBindings = {
-	'h':(-1, 0, 0, 0, 0),        
+	'h':(-1, 0, 0, 0, 0),
 	'u':(0, 1, 0, 0, 0),
   'j':(0,-1, 0, 0, 0),
 	'i':(0, 0, 1, 0, 0),
@@ -55,7 +55,7 @@ class Servo:
   def setAngle(self, angle):
     self.angle = angle
 
-      
+
 def location_callback(baseMsg):
   rospy.loginfo("Callback entered")
   speed = 40
@@ -93,19 +93,19 @@ def location_callback(baseMsg):
     claw_r.setAngle(180)
   if (grabRight == -1):
     claw_r.setAngle(0)
-  
+
 
   rospy.loginfo("Claw commands: L: %d R: %d" % (claw_l.getAngle(), claw_r.getAngle()))
 
   clawMsg.posL = claw_l.getAngle()
   clawMsg.posR = claw_r.getAngle()
   clawPub.publish(clawMsg)
-  
 
-  # handle arm position     
+
+  # handle arm position
   baseMsg = armCtrl()
   baseMsg.elbowVel = elbow*speed
-  baseMsg.shoulderVel = shoulder*speed 
+  baseMsg.shoulderVel = shoulder*speed
   baseMsg.baseVel = base.getAngle() + (5*turn)
   if (baseMsg.baseVel > 90):
     baseMsg.baseVel = 90
@@ -115,19 +115,19 @@ def location_callback(baseMsg):
   base.setAngle(int(baseMsg.baseVel))
   armPub.publish(baseMsg)
 
- 
-  
 
-	
+
+
+
 def getKey():
     tty.setraw(sys.stdin.fileno())
     select.select([sys.stdin], [], [], 0)
-    
+
     key = sys.stdin.read(1)
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-  
+
 
 if __name__=="__main__":
       base = Servo()
@@ -141,10 +141,6 @@ if __name__=="__main__":
       rospy.init_node('keyboard_arm', anonymous=True)
       termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
       while not rospy.is_shutdown():
-        rospy.loginfo("loop entered")
       	rospy.Subscriber('arm_positions', armPos, location_callback, queue_size=1, tcp_nodelay=False)
 
       rospy.spin()
-
-
-
