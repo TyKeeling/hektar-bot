@@ -75,8 +75,8 @@ class Master():
     rospy.sleep(0.3)
 
     #if the tape triggers a stop then we will have to add a pass for no. 2
-    if !self.left:
-      if self.featuresHit == 0:
+    if not self.left:
+      if self.featuresHit == 0 or True:
         self.wheels.publish(15, 45) # guesses for the left turn
         rospy.sleep(2)              # replace with encoders if ready
         self.wheels.publish(stop)
@@ -91,7 +91,7 @@ class Master():
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
         # BEGIN: Sequence for Claw Calibration
-        while !self.left:
+        while not self.left:
             rospy.spin()
             #Can use keyboard control during this phase
         # END: Sequence for Claw Calibration
