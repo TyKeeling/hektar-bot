@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 
-# Modified version of teleop-keyboard.py (by ROS) for hektar-bot
+# Modified version of teleop_twist_keyboard.py (by ROS) 
+# URL: https://github.com/ros-teleop/teleop_twist_keyboard
+# For hektar, team 6's robot in the 2019 ENPH 253 robot competiton.
 
 from __future__ import print_function
 import rospy
@@ -141,7 +143,6 @@ if __name__=="__main__":
       rospy.init_node('keyboard_arm', anonymous=True)
       termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
       while not rospy.is_shutdown():
-        rospy.loginfo("loop entered")
       	rospy.Subscriber('arm_positions', armPos, location_callback, queue_size=1, tcp_nodelay=False)
 
       rospy.spin()
