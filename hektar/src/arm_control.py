@@ -63,7 +63,8 @@ class Arm:
   def target_pots_callback(self, msg):
     try:
       self.target_pots = msg
-      rospy.log(msg)      
+      rospy.log(msg)
+      rospy.log("LOCATION: theta: %d, r: %d, z: %d" % (self.theta, self.r, self.z))      
 
     except Exception as e:
       rospy.loginfo("Exception: {} \n On line number: {}".format(e, sys.exc_info()[-1].tb_lineno))
@@ -86,10 +87,8 @@ class Arm:
       errorShoulder= newShoulder - nowShoulder
       errorElbow = newElbow - nowElbow
 
-      self.theta, self.r, self.z = unsolve(0, angles[1], angles[2])
+      self.theta, self.r, self.z = kinematics.unsolve(0, angles[1], angles[2])
       self.theta = self.target.theta
-
-      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (self.theta, self.r, self.z))
      
       rospy.loginfo("ERRORS: elbow: %d shoulder: %d" % (errorElbow, errorShoulder))
 
@@ -151,7 +150,7 @@ class Arm:
 	      self.integralShoulder = 0
       
 
-      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (theta, r, z))rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (theta, r, z))
+      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (theta, r, z))
       return msg
     msg = armCtrl()
     rospy.loginfo("ERROR: kinematics did not work")

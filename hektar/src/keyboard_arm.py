@@ -6,9 +6,9 @@
 from __future__ import print_function
 import rospy
 import roslib
-
+from hektar.cfg import KeyboardConfig
 from hektar.msg import armCtrl
-
+from dynamic_reconfigure.server import Server
 import sys, select, termios, tty
 
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size = 10)
@@ -56,20 +56,28 @@ def getKey():
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
     return key
 
-
+class Slider():
+  def __init__(self):
+    self.speed = 0
+  def callback(self, config, level):
+    rospy.loginfo("Reconfigure Request: {keyboard_speed}".format(**config))
+    self.speed = config["keyboard_speed"]
+    return config
 
 def control():
     rospy.init_node('keyboard_arm', anonymous=True)
+    
+    #slider = Slider()
+    #srv = Server(KeyboardConfig, slider.callback)
+    #speed = slider.speed
 
     servo = Servo()
     servo.setAngle(90)
 
-
+    speed = 35
     turn = 0
     elbow = 0
     shoulder = 0
-
-    speed = 50
 
     try:
         while(1):
