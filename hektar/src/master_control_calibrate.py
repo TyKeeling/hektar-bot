@@ -58,6 +58,7 @@ class Master():
       else:
           rospy.loginfo("switched to Right mode, reset featuresHit")
 
+
   #Thinking that if we get hit with a robot at a fork, we should continue on.
   #For now colisions are only for the IR array
   def fork_analysis_callback(self, msg):
@@ -88,29 +89,14 @@ class Master():
 
       elif self.featuresHit == 2: # First T: pickup stone
         self.wheels.publish(stop)
+        rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
+        # BEGIN: Sequence for Claw Calibration
+        while !self.left:
+            rospy.spin()
+            #Can use keyboard control during this phase
+        # END: Sequence for Claw Calibration
 
-        # BEGIN: Sequence for Claw Grabbing
-
-        # open left claw
-        self.claw.publish(180, 0)
-        # align arm
-        self.arm.publish(theta=-90, r=250, z=100)
-        rospy.sleep(2)
-
-        #lower arm
-        self.arm.publish(theta=-90, r=250, z=100)
-        rospy.sleep(1)
-        # close left claw
-        self.claw.publish(0, 0)
-        rospy.sleep(0.5)
-
-        # lift stone away
-        target.z = 120
-        self.arm.publish(target)
-        rospy.sleep(0,5)
-        # END: Sequence for Claw Grabbing
-
-    else: #Right side of the course
+    else: #Left side of the course
         pass #ignore for now
         # but now I'm wondering if PID control should be used here
         # so that the bot is further aligned.
