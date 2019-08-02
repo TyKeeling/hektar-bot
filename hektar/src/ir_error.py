@@ -20,7 +20,7 @@ class Ir_Error():
   def __init__(self):
     self.state_pub = rospy.Publisher('state', Float64, queue_size=1)
     self.feature_pub = rospy.Publisher('line_feature', Bool, queue_size=1)
-    self.threshold = 50
+    self.threshold = 300
     self.lastPos = Float64()
     self.lastPos.data = 0
     self.feature_increment = 0
@@ -28,7 +28,7 @@ class Ir_Error():
     self.sentFlag = False
 
   def array_callback(self, msg):
-    sensors = (msg.ir_0, msg.ir_1, msg.ir_2, msg.ir_3, msg.ir_4)
+    sensors = (msg.ir_0 + 150, msg.ir_1 - 100, msg.ir_2, msg.ir_3, msg.ir_4 + 150)
     pos = Float64()
     send = Bool()
     send.data = True
@@ -58,7 +58,9 @@ class Ir_Error():
     # this if statement means that every element in the list is True
     if all(self.feature_hit) and not self.sentFlag:
       self.feature_pub.publish(send)
-      rospy.loginfo("Analysis: feature hit. ")
+      rospy.loginfo("Analysis feature hit: ")
+      rospy.loginfo(sensors_threshold)
+      rospy.loginfo(sensors)
       self.sentFlag = True
     
     # any(): built in python function that returns True if any element in a list is True
