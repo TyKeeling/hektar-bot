@@ -19,6 +19,7 @@ generate_dynamic_reconfigure_options(
   cfg/Ir_Error.cfg
   cfg/DeadReckon.cfg
   cfg/WheelControl.cfg
+  cfg/Keyboard.cfg
 )
 
 
