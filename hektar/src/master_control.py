@@ -7,9 +7,6 @@ from hektar.cfg import HektarConfig
 from arm_targets import Target
 # Master control header. This node takes the state of features in the course and dictates arm and wheel motion.
 
-# Arm positions
-
-
 class Master():
   def __init__(self):
     self.enable = rospy.Publisher('pid_enable', Bool, queue_size=1)
