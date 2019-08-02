@@ -30,8 +30,6 @@ class Ir_Error():
   def array_callback(self, msg):
     sensors = (msg.ir_0, msg.ir_1, msg.ir_2, msg.ir_3, msg.ir_4)
     pos = Float64()
-    send = Bool()
-    send.data = True
     sensors_threshold = [0] * 5
 
     # BEGIN: Fork analysis
@@ -59,7 +57,7 @@ class Ir_Error():
     # all(): built in python function that returns True if all elements in a list are True
     # this if statement means that every element in the list is True
     if all(self.feature_hit) and not self.sentFlag:
-      self.feature_pub.publish(send)
+      self.feature_pub.publish(True)
       rospy.loginfo("Analysis: feature hit. ")
       self.sentFlag = True
 
