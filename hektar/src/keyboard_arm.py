@@ -7,11 +7,17 @@ from __future__ import print_function
 import rospy
 import roslib
 from hektar.cfg import KeyboardConfig
+from hektar.msg import armPos
+import kinematics
+import math
 from hektar.msg import armCtrl
 from dynamic_reconfigure.server import Server
 import sys, select, termios, tty
 
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size = 10)
+
+offsetShoulder = -254
+offsetElbow = -330
 
 settings = termios.tcgetattr(sys.stdin)
 
@@ -47,6 +53,16 @@ class Servo:
     self.angle = angle
 
       
+def location_callback(msg):
+  theta, r, z = kinematics.unsolve(0, math.pi - (msg.shoulderPos + offsetShoulder)/162.9, -(msg.elbowPos + offsetElbow)/162.9)
+  rospy.loginfo("Location: r: %d z: %d" % (r, z))
+  angles = [0,0,0]
+  kinematics.solve(float(0), float(r), float(z), angles)
+  newShoulder = -(angles[1]-math.pi)*162.9 - offsetShoulder
+  newElbow = (angles[2]*162.9) - offsetElbow
+  rospy.loginfo("Solved pot vals: shoulder: %d, elbow:%d" % (newShoulder, newElbow))
+
+
 	
 def getKey():
     tty.setraw(sys.stdin.fileno())
@@ -65,16 +81,12 @@ class Slider():
     return config
 
 def control():
-    rospy.init_node('keyboard_arm', anonymous=True)
-    
-    #slider = Slider()
-    #srv = Server(KeyboardConfig, slider.callback)
-    #speed = slider.speed
-
     servo = Servo()
     servo.setAngle(90)
 
     speed = 35
+    rospy.Subscriber('arm_positions', armPos, location_callback, queue_size=1, tcp_nodelay=False)
+
     turn = 0
     elbow = 0
     shoulder = 0
@@ -109,6 +121,7 @@ def control():
 
 if __name__=="__main__":
     try:
+      rospy.init_node('keyboard_arm', anonymous=True)
       termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
       control()
 
