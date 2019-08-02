@@ -74,7 +74,7 @@ class Master():
     rospy.sleep(0.3)
 
     #if the tape triggers a stop then we will have to add a pass for no. 2
-    if !self.left:
+    if not self.left:
       if self.featuresHit == 0:
         self.wheels.publish(15, 45) # guesses for the left turn
         rospy.sleep(2)              # replace with encoders if ready

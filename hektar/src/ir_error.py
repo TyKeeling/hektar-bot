@@ -20,7 +20,7 @@ class Ir_Error():
   def __init__(self):
     self.state_pub = rospy.Publisher('state', Float64, queue_size=1)
     self.feature_pub = rospy.Publisher('line_feature', Bool, queue_size=1)
-    self.threshold = 600
+    self.threshold = 50
     self.lastPos = Float64()
     self.lastPos.data = 0
     self.feature_increment = 0
