@@ -28,7 +28,7 @@ class Ir_Error():
     self.sentFlag = False
 
   def array_callback(self, msg):
-    sensors = (msg.ir_0, msg.ir_1, msg.ir_2, msg.ir_3, msg.ir_4)
+    sensors = (msg.ir_0 + 150, msg.ir_1 - 100, msg.ir_2, msg.ir_3, msg.ir_4 + 150)
     pos = Float64()
     sensors_threshold = [0] * 5
 
@@ -58,7 +58,9 @@ class Ir_Error():
     # this if statement means that every element in the list is True
     if all(self.feature_hit) and not self.sentFlag:
       self.feature_pub.publish(True)
-      rospy.loginfo("Analysis: feature hit. ")
+      rospy.loginfo("Analysis feature hit: ")
+      rospy.loginfo(sensors_threshold)
+      rospy.loginfo(sensors)
       self.sentFlag = True
 
     # any(): built in python function that returns True if any element in a list is True
