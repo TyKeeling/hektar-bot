@@ -17,8 +17,8 @@ import sys, select, termios, tty
 armPub = rospy.Publisher('arm_commands', armCtrl, queue_size = 1)
 clawPub = rospy.Publisher('grabber', Claw, queue_size = 1)
 
-offsetShoulder = -254
-offsetElbow = -330
+offsetShoulder = -224
+offsetElbow = -296
 
 settings = termios.tcgetattr(sys.stdin)
 
