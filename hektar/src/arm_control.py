@@ -11,7 +11,7 @@ pub = rospy.Publisher('arm_commands', armCtrl, queue_size=10)
 
 # Initilaize parameters
 sweepMinShoulder = 290  # mechanical min
-sweepMaxShoulder = 750  # mechanical max
+sweepMaxShoulder = 850  # mechanical max
 offsetShoulder = -224 # 256 minus value at pi/2
 
 sweepMinElbow = 200 # mechanical min

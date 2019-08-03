@@ -116,7 +116,7 @@ def location_callback(baseMsg):
 
   base.setAngle(int(baseMsg.baseVel))
   armPub.publish(baseMsg)
-
+ 
 
 
 
@@ -133,7 +133,7 @@ def getKey():
 
 if __name__=="__main__":
       base = Servo()
-      base.setAngle(0)
+      base.setAngle(40)
       claw_l = Servo()
       claw_l.setAngle(180)
       claw_r = Servo()

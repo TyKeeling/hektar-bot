@@ -5,14 +5,16 @@
       <param name="baud" value="57600"/>
    </node>
 
-   <node name="control_master_calibrate" pkg="hektar" type="master_control_calibrate.py" output="screen" />
+   <!-- <node name="control_master_calibrate" pkg="hektar" type="master_control_calibrate.py" output="screen" /> -->
 
    <node name="ir_error_node" pkg="hektar" type="ir_error.py" output="screen" />
 
-   <node name="setpoint_node" pkg="hektar" type="wheel_setpoint.py" output="screen" />
+   <node name="setpoint_node" pkg="hektar" type="wheel_setpoint.py" output="screen" >
+      <param name="threshold" value="400.0" />
+   </node>
 
    <node name="wheel_pid" pkg="pid" type="controller" output="screen" >
-      <param name="Kp" value="50.0" />
+      <param name="Kp" value="18.0" />
       <param name="Ki" value="0.0" />
       <param name="Kd" value="1.0" />
       <param name="upper_limit" value="100" />
@@ -24,6 +26,7 @@
     </node>
 
     <node name="wheel_control_output" pkg="hektar" type="wheel_control.py" output="screen" >
+      <param name="speed" value="0" />
     </node>
 
     <node name="keyboard_arm" pkg="hektar" type="keyboard_arm.py"
