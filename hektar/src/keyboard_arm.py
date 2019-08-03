@@ -133,7 +133,7 @@ def getKey():
 
 if __name__=="__main__":
       base = Servo()
-      base.setAngle(90)
+      base.setAngle(0)
       claw_l = Servo()
       claw_l.setAngle(180)
       claw_r = Servo()

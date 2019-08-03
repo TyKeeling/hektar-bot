@@ -2,6 +2,7 @@
 import rospy
 from hektar.msg import armCtrl, armPos, armTarget, armPotTargets
 import time
+import math
 from math import pi
 import kinematics
 import sys
@@ -150,7 +151,7 @@ class Arm:
 	      self.integralShoulder = 0
       
 
-      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (theta, r, z))
+      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (self.theta, self.r, self.z))
       return msg
     msg = armCtrl()
     rospy.loginfo("ERROR: kinematics did not work")

@@ -75,17 +75,18 @@ class Master():
     rospy.sleep(0.3)
 
     #if the tape triggers a stop then we will have to add a pass for no. 2
-    if not self.left:
-      if self.featuresHit == 0 or True:
-        self.wheels.publish(15, 45) # guesses for the left turn
-        rospy.sleep(2)              # replace with encoders if ready
+    if not self.left or True:
+      if self.featuresHit == 0:
+        self.wheels.publish(0, 30) # guesses for the left turn
+        rospy.sleep(2.0)              # replace with encoders if ready
         self.wheels.publish(stop)
 
       elif self.featuresHit == 1:
 
-        self.wheels.publish(20, 40)
-        rospy.sleep(2)
-        self.speed.publish(70) #slow down once we have entered the higher circle
+        self.wheels.publish(0, 30)
+        rospy.sleep(2.0)
+        self.wheels.publish(stop)
+        self.speed.publish(60) #slow down once we have entered the higher circle
 
       elif self.featuresHit == 2: # First T: pickup stone
         self.wheels.publish(stop)

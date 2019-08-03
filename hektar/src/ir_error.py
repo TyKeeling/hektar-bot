@@ -12,8 +12,8 @@ from hektar.cfg import Ir_ErrorConfig
 #* ASSUME setpoint is 0 (center)
 
 
-OFF_TAPE_ERROR = 6
-FEATURE_BUFFER = 4
+OFF_TAPE_ERROR = 4
+FEATURE_BUFFER = 2
 THRESHOLD = 400
 
 class Ir_Error():
