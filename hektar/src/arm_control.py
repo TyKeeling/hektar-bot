@@ -81,7 +81,7 @@ class Arm:
     
     # replacing base solving with x = 0 so we can use x message for base pot val
     if kinematics.solve(float(0), float(self.target.r), float(self.target.z), angles):
-      newShoulder = -(angles[1]-math.pi)*162.9 - offsetShoulder
+      newShoulder = -(angles[1]-pi)*162.9 - offsetShoulder
       newElbow = (angles[2]*162.9) - offsetElbow
 
       errorShoulder= newShoulder - nowShoulder
@@ -150,7 +150,7 @@ class Arm:
 	      self.integralShoulder = 0
       
 
-      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (theta, r, z))
+      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (self.theta, self.r, self.z))
       return msg
     msg = armCtrl()
     rospy.loginfo("ERROR: kinematics did not work")
