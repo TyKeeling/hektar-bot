@@ -9,13 +9,13 @@ import sys
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size=10)
 
 # Initilaize parameters
-sweepMinShoulder = 315  # mechanical min
-sweepMaxShoulder = 709  # mechanical max
-offsetShoulder = -254 # 256 minus value at pi/2
+sweepMinShoulder = 290  # mechanical min
+sweepMaxShoulder = 750  # mechanical max
+offsetShoulder = -224 # 256 minus value at pi/2
 
-sweepMinElbow = 210 # mechanical min
-sweepMaxElbow = 540  # mechanical max
-offsetElbow = -330 # offset for reading at angle 0
+sweepMinElbow = 200 # mechanical min
+sweepMaxElbow = 600  # mechanical max
+offsetElbow = -296 # offset for reading at angle 0
 
 angleMinGripper = pi/2
 angleMaxGripper = 0
