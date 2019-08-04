@@ -5,17 +5,17 @@ from std_msgs.msg import Float64
 
 class Arm_split():
   def __init__(self):
-    self.shoulder_state = rospy.Publisher('/shoulder/state', Float64, queue_size=1)
+    self.shoulder_state = rospy.Publisher('shoulder/state', Float64, queue_size=1)
     self.elbow_state = rospy.Publisher('/elbow/state', Float64, queue_size=1)
 
-    self.toSerial = rospy.publisher('arm_commands', armCtrl, queue_size=1)
+    self.toSerial = rospy.Publisher('arm_commands', armCtrl, queue_size=1)
 
-    this.armVelocity = armCtrl(0,0,0)
+    self.armVelocity = armCtrl(0,0,0)
 
   def armposCB(self, msg):
-    self.shoulder_state.pub(msg.elbowPos)
-    self.elbow_state.pub(msg.shoulderPos)
-    self.toSerial.pub(armVelocity)
+    self.shoulder_state.publish(msg.shoulderPos)
+    self.elbow_state.publish(msg.elbowPos)
+    self.toSerial.publish(self.armVelocity)
 
   def shoulderCB(self, msg):
       self.armVelocity.shoulderVel = msg.data

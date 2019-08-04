@@ -2,13 +2,13 @@
   <node name="arm_split" pkg="hektar" type="arm_split.py" output="screen" />
 
   <node name="setpoint" pkg="hektar" type="pid_setpoint.py" ns="shoulder" output="screen" >
-    <param name="target_pot" value="250" />
+    <param name="target_pot" value="470" />
   </node>
 
    <node name="controller" pkg="pid" type="controller" ns="shoulder" output="screen" >
-      <param name="Kp" value="50.0" />
+      <param name="Kp" value="1.2" />
       <param name="Ki" value="0.0" />
-      <param name="Kd" value="10.0" />
+      <param name="Kd" value="0.18" />
       <param name="upper_limit" value="127" />
       <param name="lower_limit" value="-127" />
       <param name="windup_limit" value="10" />
@@ -18,13 +18,13 @@
     </node>
 
     <node name="setpoint" pkg="hektar" type="pid_setpoint.py" ns="elbow" output="screen" >
-      <param name="target_pot" value="250" />
+      <param name="target_pot" value="170" />
     </node>
 
      <node name="controller" pkg="pid" type="controller" ns="elbow" output="screen" >
-        <param name="Kp" value="50.0" />
+        <param name="Kp" value="1.0" />
         <param name="Ki" value="0.0" />
-        <param name="Kd" value="10.0" />
+        <param name="Kd" value="0.1" />
         <param name="upper_limit" value="127" />
         <param name="lower_limit" value="-127" />
         <param name="windup_limit" value="10" />
