@@ -1,0 +1,39 @@
+<launch>
+  <node name="arm_split" pkg="hektar" type="arm_split.py" output="screen" />
+
+  <node name="setpoint" pkg="hektar" type="pid_setpoint.py" ns="shoulder" output="screen" >
+    <param name="target_pot" value="250" />
+  </node>
+
+   <node name="controller" pkg="pid" type="controller" ns="shoulder" output="screen" >
+      <param name="Kp" value="50.0" />
+      <param name="Ki" value="0.0" />
+      <param name="Kd" value="10.0" />
+      <param name="upper_limit" value="127" />
+      <param name="lower_limit" value="-127" />
+      <param name="windup_limit" value="10" />
+      <param name="cutoff_frequency" value="10" />
+      <param name="max_loop_frequency" value="45.0" />
+      <param name="min_loop_frequency" value="35.0" />
+    </node>
+
+    <node name="setpoint" pkg="hektar" type="pid_setpoint.py" ns="elbow" output="screen" >
+      <param name="target_pot" value="250" />
+    </node>
+
+     <node name="controller" pkg="pid" type="controller" ns="elbow" output="screen" >
+        <param name="Kp" value="50.0" />
+        <param name="Ki" value="0.0" />
+        <param name="Kd" value="10.0" />
+        <param name="upper_limit" value="127" />
+        <param name="lower_limit" value="-127" />
+        <param name="windup_limit" value="10" />
+        <param name="cutoff_frequency" value="10" />
+        <param name="max_loop_frequency" value="45.0" />
+        <param name="min_loop_frequency" value="35.0" />
+      </node>
+
+
+
+
+</launch>
