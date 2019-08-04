@@ -2,7 +2,6 @@
 import rospy
 from hektar.msg import armCtrl, armPos, armTarget, armPotTargets
 import time
-import math
 from math import pi
 import kinematics
 import sys
@@ -10,13 +9,13 @@ import sys
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size=10)
 
 # Initilaize parameters
-sweepMinShoulder = 200  # mechanical min
-sweepMaxShoulder = 900  # mechanical max
-offsetShoulder = -224 # 256 minus value at pi/2
+sweepMinShoulder = 315  # mechanical min
+sweepMaxShoulder = 709  # mechanical max
+offsetShoulder = -254 # 256 minus value at pi/2
 
-sweepMinElbow = 20 # mechanical min
-sweepMaxElbow = 700  # mechanical max
-offsetElbow = -296 # offset for reading at angle 0
+sweepMinElbow = 210 # mechanical min
+sweepMaxElbow = 540  # mechanical max
+offsetElbow = -330 # offset for reading at angle 0
 
 angleMinGripper = pi/2
 angleMaxGripper = 0
@@ -88,8 +87,17 @@ class Arm:
       errorShoulder= newShoulder - nowShoulder
       errorElbow = newElbow - nowElbow
 
+      # Determine curent location
       self.theta, self.r, self.z = kinematics.unsolve(0, angles[1], angles[2])
       self.theta = self.target.theta
+      
+      # Calculate scaling factor for elbow Kp
+      # For this to be implemented, uncomment lines 96-100 and 111=0
+      # delta_z = self.z - self.target.z
+      # if (delta_z > 0):
+      #   kpScaler = 1 - delta_z * 0.001
+      # else:
+      #   kpScaler = 1
      
       rospy.loginfo("ERRORS: elbow: %d shoulder: %d" % (errorElbow, errorShoulder))
 
@@ -99,7 +107,7 @@ class Arm:
       setSpeed = 127
 
       kpShoulder = 1      
-      kpElbow = 2
+      kpElbow = 2 # * kpScaler
 
       kiShoulder = 0
       kiElbow = 0	
