@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 
-# Modified version of teleop-keyboard.py (by ROS) for hektar-bot
+# Modified version of teleop_twist_keyboard.py (by ROS) 
+# URL: https://github.com/ros-teleop/teleop_twist_keyboard
+# For hektar, team 6's robot in the 2019 ENPH 253 robot competiton.
 
 from __future__ import print_function
 import rospy
@@ -15,8 +17,8 @@ import sys, select, termios, tty
 armPub = rospy.Publisher('arm_commands', armCtrl, queue_size = 1)
 clawPub = rospy.Publisher('grabber', Claw, queue_size = 1)
 
-offsetShoulder = -254
-offsetElbow = -330
+offsetShoulder = -224
+offsetElbow = -296
 
 settings = termios.tcgetattr(sys.stdin)
 
@@ -114,7 +116,7 @@ def location_callback(baseMsg):
 
   base.setAngle(int(baseMsg.baseVel))
   armPub.publish(baseMsg)
-
+ 
 
 
 
@@ -131,7 +133,7 @@ def getKey():
 
 if __name__=="__main__":
       base = Servo()
-      base.setAngle(90)
+      base.setAngle(0)
       claw_l = Servo()
       claw_l.setAngle(180)
       claw_r = Servo()

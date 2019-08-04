@@ -2,6 +2,7 @@
 import rospy
 from hektar.msg import armCtrl, armPos, armTarget, armPotTargets
 import time
+import math
 from math import pi
 import kinematics
 import sys
@@ -9,13 +10,13 @@ import sys
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size=10)
 
 # Initilaize parameters
-sweepMinShoulder = 315  # mechanical min
-sweepMaxShoulder = 709  # mechanical max
-offsetShoulder = -254 # 256 minus value at pi/2
+sweepMinShoulder = 250  # mechanical min
+sweepMaxShoulder = 900  # mechanical max
+offsetShoulder = -224 # 256 minus value at pi/2
 
-sweepMinElbow = 210 # mechanical min
-sweepMaxElbow = 540  # mechanical max
-offsetElbow = -330 # offset for reading at angle 0
+sweepMinElbow = 145 # mechanical min
+sweepMaxElbow = 650  # mechanical max
+offsetElbow = -296 # offset for reading at angle 0
 
 angleMinGripper = pi/2
 angleMaxGripper = 0
@@ -81,7 +82,7 @@ class Arm:
     
     # replacing base solving with x = 0 so we can use x message for base pot val
     if kinematics.solve(float(0), float(self.target.r), float(self.target.z), angles):
-      newShoulder = -(angles[1]-math.pi)*162.9 - offsetShoulder
+      newShoulder = -(angles[1]-pi)*162.9 - offsetShoulder
       newElbow = (angles[2]*162.9) - offsetElbow
 
       errorShoulder= newShoulder - nowShoulder
@@ -150,7 +151,7 @@ class Arm:
 	      self.integralShoulder = 0
       
 
-      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (theta, r, z))
+      rospy.loginfo("LOCATION: theta: %d, r: %d, z: %d" % (self.theta, self.r, self.z))
       return msg
     msg = armCtrl()
     rospy.loginfo("ERROR: kinematics did not work")
