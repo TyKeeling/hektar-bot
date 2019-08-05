@@ -20,6 +20,9 @@ generate_dynamic_reconfigure_options(
   cfg/DeadReckon.cfg
   cfg/WheelControl.cfg
   cfg/Keyboard.cfg
+  cfg/ClawSlider.cfg
+  cfg/pid.cfg
+  cfg/BaseServo.cfg
 )
 
 
