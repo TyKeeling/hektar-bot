@@ -2,6 +2,9 @@
 import rospy
 from hektar.msg import armCtrl, armPos
 from std_msgs.msg import Float64
+from dynamic_reconfigure.server import Server
+from hektar.cfg import BaseServoConfig
+
 
 class Arm_split():
   def __init__(self):
@@ -23,12 +26,17 @@ class Arm_split():
   def elbowCB(self, msg):
       self.armVelocity.elbowVel = msg.data
 
+  def reconfigure(self, config, level):
+    rospy.loginfo("""Reconfigure Request: {servo_position}""".format(**config))
+    self.armVelocity.baseVel = config["servo_position"]
+    return config
 
 def control():
   rospy.init_node('arm_split', anonymous=True)
 
   arm = Arm_split()
 
+  srv = Server(BaseServoConfig, arm.reconfigure)
   rospy.Subscriber('arm_positions', armPos, arm.armposCB, queue_size=1)
   rospy.Subscriber('/shoulder/control_effort', Float64, arm.shoulderCB, queue_size=1)
   rospy.Subscriber('/elbow/control_effort', Float64, arm.elbowCB, queue_size=1)
