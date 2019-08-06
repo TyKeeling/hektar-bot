@@ -61,7 +61,7 @@ class Master():
             rightDone = True
 
         wheels.publish(wheel)
-        
+
         i += 1
 
         if i > 1000:
@@ -142,7 +142,7 @@ class Master():
         # self.shoulder.publish(x)
         # self.elbow.publish(250)
         # rospy.sleep(0.5)
-        # while not claw_limit_switch or x < 400:
+        # while not self.claw_limit_switch or x < 400:
         #     x += 5
         #     self.shoulder.publish(x)
         #     rospy.sleep(0.05)
@@ -183,6 +183,7 @@ class Master():
           rospy.loginfo("Stopping! Dead Reckon")
 
   def  cleanup():
+    rospy.sleep(0.03)
     self.pid_enable.publish(True)
 
 def control():
