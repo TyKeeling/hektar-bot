@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from dynamic_reconfigure.server import Server
-from std_msgs.msg import Bool, Int8
+from std_msgs.msg import Bool, Int8, Int32
 from hektar.msg import wheelVelocity, armTarget, Claw
 from hektar.cfg import HektarConfig
 # Master control header. This node takes the state of features in the course and dictates arm and wheel motion.
@@ -19,6 +19,10 @@ class Master():
     self.featuresHit = 0
     self.left = False
     self.collided = False
+    self.featureCallback = False
+
+    self.encoder_left = 0
+    self.encoder_right = 0
 
 
   # outputs the number of encoder ticks
@@ -61,6 +65,7 @@ class Master():
   #Thinking that if we get hit with a robot at a fork, we should continue on.
   #For now colisions are only for the IR array
   def fork_analysis_callback(self, msg):
+    self.featureCallback = True
     #if self.collided: return
     rospy.loginfo("Feature %d identified. Sleeping.", self.featuresHit)
     self.pid_enable.publish(False)
@@ -90,7 +95,7 @@ class Master():
       elif self.featuresHit == 2: # First T: pickup stone
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
-        rospy.sleep(5)	
+        rospy.sleep(5)
         # BEGIN: Sequence for Claw Calibration
         #while not self.left:
         #    rospy.spin()
@@ -105,6 +110,17 @@ class Master():
     self.featuresHit = self.featuresHit + 1
 
     self.pid_enable.publish(True)
+    self.featureCallback=False
+
+  def encoder_left_callback(self, msg): # set switch and reset the featues hit
+      self.encoder_left = msg.data
+
+  def encoder_right_callback(self, msg): # set switch and reset the featues hit
+      self.encoder_right = msg.data
+
+  def refresh(self,msg):
+      if not featureCallback:
+          rospy.loginfo("Left Encoder: %d, Right Encoder: %d", self.encoder_left, self.encoder_right)
 
 
 def control():
@@ -114,7 +130,15 @@ def control():
   rospy.Subscriber('collision', Bool, master.collision_callback, queue_size=1)
   rospy.Subscriber('line_feature', Bool, master.fork_analysis_callback, queue_size=1, tcp_nodelay=False)
   rospy.Subscriber('left', Bool, master.switch_callback)
-  rospy.spin()
+  rospy.Subscriber('encoder_left', Int32, master.encoder_left_callback, queue_size=1)
+  rospy.Subscriber('encoder_right', Int32, master.encoder_right_callback, queue_size=1)
+
+  r = rospy.Rate(10)
+
+  while not rospy.is_shutdown:
+    master.refresh()
+    r.sleep()
+
 
 
 if __name__ == '__main__':
