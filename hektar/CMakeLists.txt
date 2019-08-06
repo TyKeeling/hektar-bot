@@ -21,7 +21,7 @@ generate_dynamic_reconfigure_options(
   cfg/WheelControl.cfg
   cfg/Keyboard.cfg
   cfg/ClawSlider.cfg
-  cfg/pid.cfg
+  pid/pid.cfg
   cfg/BaseServo.cfg
 )
 

@@ -26,6 +26,9 @@ class Arm_split():
   def elbowCB(self, msg):
       self.armVelocity.elbowVel = msg.data
 
+  def baseCB(self, msg):
+      self.armVelocity.baseVel = msg.data
+
   def reconfigure(self, config, level):
     rospy.loginfo("""Reconfigure Request: {servo_position}""".format(**config))
     self.armVelocity.baseVel = config["servo_position"]
@@ -40,6 +43,7 @@ def control():
   rospy.Subscriber('arm_positions', armPos, arm.armposCB, queue_size=1)
   rospy.Subscriber('/shoulder/control_effort', Float64, arm.shoulderCB, queue_size=1)
   rospy.Subscriber('/elbow/control_effort', Float64, arm.elbowCB, queue_size=1)
+  rospy.Subscriber('/base_setpoint', Int8, arm.baseCB, queue_size=1)
 
   rospy.spin()
 
