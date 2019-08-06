@@ -6,7 +6,7 @@ from hektar.msg import wheelVelocity, armTarget, Claw
 from hektar.cfg import HektarConfig
 # Master control header. This node takes the state of features in the course and dictates arm and wheel motion.
 
-TICKS_REV = 95
+DEFAULT = -1000
 
 class Master():
   def __init__(self):
@@ -23,8 +23,10 @@ class Master():
 
     self.encoder_left = 0
     self.encoder_right = 0
+    self.begin_left = DEFAULT
+    self.begin_right = DEFAULT
 
-
+    self.pid_enable.publish(True)
   # outputs the number of encoder ticks
   # thinking that one wheel moving one tick is about 1.14 deg or 2.3 for both
   # also 95*2.5 ticks makes one full revolution of the wheel.
@@ -113,14 +115,25 @@ class Master():
     self.featureCallback=False
 
   def encoder_left_callback(self, msg): # set switch and reset the featues hit
-      self.encoder_left = msg.data
+      if self.begin_left == DEFAULT:
+        self.begin_left = msg.data
+      else:
+        self.encoder_left = msg.data - self.begin_left
 
   def encoder_right_callback(self, msg): # set switch and reset the featues hit
-      self.encoder_right = msg.data
+      if self.begin_right == DEFAULT:
+        self.begin_right = msg.data
+      else:
+        self.encoder_right = msg.data - self.begin_right
 
-  def refresh(self,msg):
-      if not featureCallback:
-          rospy.loginfo("Left Encoder: %d, Right Encoder: %d", self.encoder_left, self.encoder_right)
+  def refresh(self):
+      if not self.featureCallback:
+        rospy.loginfo("Left Encoder: %d, Right Encoder: %d", self.encoder_left, self.encoder_right)
+        if 2400 - self.encoder_right + 1600 - self.encoder_left < 300:  
+          self.pid_enable.publish(False)
+          rospy.sleep(0.03) # solution to avoid wheel_control_output collisions
+          self.wheels.publish(0,0)
+          rospy.loginfo("Stopping! Dead Reckon")
 
 
 def control():
@@ -134,11 +147,10 @@ def control():
   rospy.Subscriber('encoder_right', Int32, master.encoder_right_callback, queue_size=1)
 
   r = rospy.Rate(10)
-
-  while not rospy.is_shutdown:
+  while not rospy.is_shutdown() or True:
     master.refresh()
     r.sleep()
-
+  rospy.spin()
 
 
 if __name__ == '__main__':
