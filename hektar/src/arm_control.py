@@ -1,25 +1,48 @@
 #!/usr/bin/env python
 import rospy
 from hektar.msg import armCtrl, armPos, armTarget, armPotTargets
+from std_msgs.msg import Float64
 import time
-import math
 from math import pi
 import kinematics
 import sys
 
 pub = rospy.Publisher('arm_commands', armCtrl, queue_size=10)
+shoulder = rospy.Publisher("shoulder/setpoint", Float64, queue_size=1)
+elbow = rospy.Publisher("elbow/setpoint", Float64, queue_size=1)
 
 # Initilaize parameters
-sweepMinShoulder = 200  # mechanical min
-sweepMaxShoulder = 900  # mechanical max
-offsetShoulder = -224 # 256 minus value at pi/2
+offsetShoulder = 256 - 555 # 256 minus value at pi/2
+offsetElbow = -305 # offset for reading at angle 0
 
-sweepMinElbow = 20 # mechanical min
-sweepMaxElbow = 700  # mechanical max
-offsetElbow = -296 # offset for reading at angle 0
+sweepMinShoulder = 0  # NEEDS RECALIBRATING mechanical min
+sweepMaxShoulder = 800  # NEEDS RECALIBRATING mechanical max
+sweepMinElbow = 210 # mechanical min
+sweepMaxElbow = 540  # mechanical max
+
 
 angleMinGripper = pi/2
 angleMaxGripper = 0
+
+def coordinate_callback(msg):
+  theta = msg.theta
+  r = msg.r
+  z = msg.z
+  angles = [0,0,0]
+  rospy.loginfo("IN: theta: %d r: %d z: %d" % (theta, r, z))
+
+  kinematics.solve(float(0), float(r), float(z), angles)
+  setpointShoulder = Float64()
+  setpointElbow = Float64()
+  setpointShoulder.data = -(angles[1]-pi)*162.9 - offsetShoulder
+  setpointElbow.data = (angles[2]*162.9) - offsetElbow
+
+  rospy.loginfo("OUT: elbowSetpoint: %d shoulderSetpoint: %d" % (setpointElbow.data, setpointShoulder.data))
+
+  shoulder.publish(setpointShoulder)
+  elbow.publish(setpointElbow)
+  
+
 
 class Arm:
   def __init__(self):
@@ -88,8 +111,17 @@ class Arm:
       errorShoulder= newShoulder - nowShoulder
       errorElbow = newElbow - nowElbow
 
+      # Determine curent location
       self.theta, self.r, self.z = kinematics.unsolve(0, angles[1], angles[2])
       self.theta = self.target.theta
+      
+      # Calculate scaling factor for elbow Kp
+      # For this to be implemented, uncomment lines 96-100 and 111=0
+      # delta_z = self.z - self.target.z
+      # if (delta_z > 0):
+      #   kpScaler = 1 - delta_z * 0.001
+      # else:
+      #   kpScaler = 1
      
       rospy.loginfo("ERRORS: elbow: %d shoulder: %d" % (errorElbow, errorShoulder))
 
@@ -99,7 +131,7 @@ class Arm:
       setSpeed = 127
 
       kpShoulder = 1      
-      kpElbow = 2
+      kpElbow = 2 # * kpScaler
 
       kiShoulder = 0
       kiElbow = 0	
@@ -226,9 +258,9 @@ def control():
 
   arm = Arm()
 
-  rospy.Subscriber('claw_target', armTarget, arm.target_callback, queue_size=1, tcp_nodelay=False)
-  rospy.Subscriber('pot_targets', armPotTargets, arm.target_pots_callback, queue_size=1, tcp_nodelay=False)
-  rospy.Subscriber('arm_positions', armPos, arm.pots_callback, queue_size=1, tcp_nodelay=False)
+  rospy.Subscriber('claw_target', armTarget, coordinate_callback, queue_size=1, tcp_nodelay=False)
+  #rospy.Subscriber('pot_targets', armPotTargets, arm.target_pots_callback, queue_size=1, tcp_nodelay=False)
+  #rospy.Subscriber('arm_positions', armPos, arm.pots_callback, queue_size=1, tcp_nodelay=False)
   rospy.spin()
 
 if __name__ == '__main__':
