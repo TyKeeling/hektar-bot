@@ -136,7 +136,7 @@ class Master():
       elif self.featuresHit == 2: # First T: pickup stone
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
-        rospy.sleep(5)
+        rospy.sleep(30)
 
     # BEGIN: Sequence for Stone Pickup
         # x = 250
@@ -157,7 +157,41 @@ class Master():
     # END: Sequence for Stone Pickup
 
     else: #Left side of the course
-        pass
+      if self.featuresHit == 0:
+        self.wheels.publish(50, -10) # guesses for the left turn
+        rospy.sleep(2.0)             # replace with encoders when ready
+        self.wheels.publish(stop)
+
+      elif self.featuresHit == 1:
+
+        self.wheels.publish(50, -10)
+        rospy.sleep(1.5)
+        self.wheels.publish(stop)
+        self.speed.publish(60) #slow down once we have entered the higher circle
+
+      elif self.featuresHit == 2: # First T: pickup stone
+        self.wheels.publish(stop)
+        rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
+        rospy.sleep(30)
+
+    # BEGIN: Sequence for Stone Pickup
+        # x = 250
+        # self.base.publish(-90)
+        # self.shoulder.publish(x)
+        # self.elbow.publish(250)
+        # rospy.sleep(0.5)
+        # while not self.claw_limit_switch or x < 400:
+        #     x += 5
+        #     self.shoulder.publish(x)
+        #     rospy.sleep(0.05)
+        # self.claw.publish(180,180) # close
+        # rospy.sleep(0.1)
+        # self.elbow.publish(150)  # lift up
+        # rospy.sleep(0.2)
+        # self.shoulder.publish(400) #return to resting position
+        # self.elbow.publish(250)
+    # END: Sequence for Stone Pickup
+
 
     self.featuresHit = self.featuresHit + 1
     self.pid_enable.publish(True)
