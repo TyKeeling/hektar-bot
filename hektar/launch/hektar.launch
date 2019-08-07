@@ -2,7 +2,7 @@
    <node pkg="rosserial_python" type="serial_node.py" name="serial_node"
       output="screen">
       <param name="port" value="/dev/ttyUSB0"/>
-      <param name="baud" value="57600"/>
+      <param name="baud" value="115200"/>
    </node>
 
    <!-- <node name="control_master_calibrate" pkg="hektar" type="master_control_calibrate.py" output="screen" /> -->
@@ -29,6 +29,4 @@
       <param name="speed" value="0" />
     </node>
 
-    <node name="keyboard_arm" pkg="hektar" type="keyboard_arm.py"
-      output="screen" launch-prefix="lxterminal -e"/>
 </launch>

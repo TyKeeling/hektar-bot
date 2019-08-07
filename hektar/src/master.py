@@ -1,24 +1,22 @@
 #!/usr/bin/env python
 import rospy
 from dynamic_reconfigure.server import Server
-from std_msgs.msg import Bool, Int8, Int32
+from std_msgs.msg import Bool, Int8, Int32, Float64
 from hektar.msg import wheelVelocity, armTarget, Claw
 from hektar.cfg import HektarConfig
 # Master control header. This node takes the state of features in the course and dictates arm and wheel motion.
 
-r = rospy.Rate(10)
 
 DEFAULT = -1000
 TICKS_REV = 240 #ish
-ENCODER_ERROR = 60
-TIMEOUT = 5
+ENCODER_ERROR = 20
 ENCODER_SPEED = 70
 
 class Master():
   def __init__(self):
     self.pid_enable = rospy.Publisher('pid_enable', Bool, queue_size=1)
     self.wheels = rospy.Publisher("wheel_output", wheelVelocity, queue_size=1)
-    self.speed  = rospy.Publisher("set_speed", Int8, queue_size=20)
+    self.speed  = rospy.Publisher("set_speed", Int8, queue_size=1)
     self.claw = rospy.Publisher("grabber", Claw, queue_size = 1) # publish angle from 0-180 for claw open/close
     self.shoulder = rospy.Publisher("shoulder/setpoint", Float64, queue_size=1)
     self.elbow = rospy.Publisher("elbow/setpoint", Float64, queue_size=1)
@@ -34,6 +32,9 @@ class Master():
     self.begin_left = DEFAULT
     self.begin_right = DEFAULT
 
+    self.pid_enable.publish(True)
+    self.speed.publish(100)
+
   # outputs the number of encoder ticks
   # thinking that one wheel moving one tick is about 1.14 deg or 2.3 for both
   # also 95*2.5 ticks makes one full revolution of the wheel.
@@ -41,35 +42,37 @@ class Master():
   def send_position(self, leftWheel, rightWheel): #send revolution * TICKS_REV
     wheel = wheelVelocity();
     leftTarget = leftWheel + self.encoder_left
-    rightTarget = rightWheel + right.encoder_right
-    leftDone, rightDone = False
+    rightTarget = rightWheel + self.encoder_right
+    leftDone, rightDone = False, False
     i = 0
-
+    
     while leftDone == False or rightDone == False:
-        if leftTarget - leftWheel > ENCODER_ERROR:
+        if leftTarget - self.encoder_left > ENCODER_ERROR:
             wheel.wheelL = ENCODER_SPEED
-        elif leftWheel - leftTarget > ENCODER_ERROR:
+        elif self.encoder_left - leftTarget > ENCODER_ERROR:
             wheel.wheelL = - ENCODER_SPEED
         else:
             wheel.wheelL = 0
             leftDone = True
 
-        if rightTarget - rightWheel > ENCODER_ERROR:
+        if rightTarget - self.encoder_right > ENCODER_ERROR:
             wheel.wheelR = ENCODER_SPEED
-        elif rightWheel - rightTarget > ENCODER_ERROR:
+        elif self.encoder_right - rightTarget > ENCODER_ERROR:
             wheel.wheelR = - ENCODER_SPEED
         else:
             wheel.wheelR = 0
             rightDone = True
 
-        wheels.publish(wheel)
+        self.wheels.publish(wheel)
 
         i += 1
 
-        if i > 1000:
+        if i > 2000:
             rospy.loginfo("Timeout")
+            break
 
-        r.sleep()
+        rospy.sleep(0.02)
+    rospy.loginfo("Done Reckon")
 
 
   def collision_callback(self, msg):
@@ -122,7 +125,7 @@ class Master():
     # RIGHT SIDE of the course:
     if not self.left or True:
       if self.featuresHit == 0:
-        self.wheels.publish(-10, 50) # guesses for the left turn
+        self.wheels.publish(-10, 70) # guesses for the left turn
         rospy.sleep(2.0)             # replace with encoders when ready
         self.wheels.publish(stop)
 
@@ -136,7 +139,7 @@ class Master():
       elif self.featuresHit == 2: # First T: pickup stone
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
-        rospy.sleep(5)
+        rospy.sleep(2)
 
     # BEGIN: Sequence for Stone Pickup
         # x = 250
@@ -178,18 +181,21 @@ class Master():
   def refresh(self):
       if not self.featureCallback:
         rospy.loginfo("Left Encoder: %d, Right Encoder: %d", self.encoder_left, self.encoder_right)
-        if 2400 - self.encoder_right + 1600 - self.encoder_left < 300:
+        if 1600 - self.encoder_left < 200:
           self.pid_enable.publish(False)
           rospy.sleep(0.03) # solution to avoid wheel_control_output collisions
           self.wheels.publish(0,0)
           rospy.loginfo("Stopping! Dead Reckon")
+          rospy.sleep(2)
+          self.pid_enable.publish(True)
 
-  def  cleanup():
+  def  cleanup(self):
     rospy.sleep(0.03)
     self.pid_enable.publish(True)
 
 def control():
   rospy.init_node('control_master', anonymous=True)
+  r = rospy.Rate(10)
 
   master = Master()
 
@@ -202,9 +208,12 @@ def control():
   rospy.on_shutdown(master.cleanup)
 
 
-  while not rospy.is_shutdown() or True:
-    master.refresh()
-    r.sleep()
+  #while not rospy.is_shutdown() or True:
+ # rospy.sleep(2)
+ # master.pid_enable.publish(False)
+ # master.send_position(-320, 320)
+ # master.wheels.publish(0,0)
+ # master.pid_enable.publish(True)
   rospy.spin()
 
 

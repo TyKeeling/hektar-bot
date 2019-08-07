@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from hektar.msg import armCtrl, armPos
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Int8
 from dynamic_reconfigure.server import Server
 from hektar.cfg import BaseServoConfig
 
