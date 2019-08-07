@@ -12,6 +12,7 @@ DEFAULT = -1000
 TICKS_REV = 240 #ish
 ENCODER_ERROR = 60
 TIMEOUT = 5
+ENCODER_SPEED = 70
 
 class Master():
   def __init__(self):
@@ -36,6 +37,7 @@ class Master():
   # outputs the number of encoder ticks
   # thinking that one wheel moving one tick is about 1.14 deg or 2.3 for both
   # also 95*2.5 ticks makes one full revolution of the wheel.
+  # assumes that PID is disabled.
   def send_position(self, leftWheel, rightWheel): #send revolution * TICKS_REV
     wheel = wheelVelocity();
     leftTarget = leftWheel + self.encoder_left
@@ -45,17 +47,17 @@ class Master():
 
     while leftDone == False or rightDone == False:
         if leftTarget - leftWheel > ENCODER_ERROR:
-            wheel.wheelL = 60
+            wheel.wheelL = ENCODER_SPEED
         elif leftWheel - leftTarget > ENCODER_ERROR:
-            wheel.wheelL = -60
+            wheel.wheelL = - ENCODER_SPEED
         else:
             wheel.wheelL = 0
             leftDone = True
 
         if rightTarget - rightWheel > ENCODER_ERROR:
-            wheel.wheelR = 60
+            wheel.wheelR = ENCODER_SPEED
         elif rightWheel - rightTarget > ENCODER_ERROR:
-            wheel.wheelR = -60
+            wheel.wheelR = - ENCODER_SPEED
         else:
             wheel.wheelR = 0
             rightDone = True
