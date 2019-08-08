@@ -11,7 +11,8 @@ DEFAULT = -1000
 TICKS_REV = 240 #ish
 ENCODER_ERROR = 20
 ENCODER_SPEED = 70
-START_SPEED = 55
+START_SPEED = 75
+SLOW_SPEED = 45
 
 class Master():
   def __init__(self):
@@ -103,10 +104,10 @@ class Master():
     self.collided = False
 
   def switch_callback(self, msg): # set switch and reset the featues hit
-      self.reckon=False
+      self.reckon = False
+      self.featuresHit = 0
       self.pid_enable.publish(True)
       self.left = msg.data
-      self.featuresHit = 0
       self.begin_right = self.encoder_right
       self.begin_left  = self.encoder_left
       self.speed.publish(START_SPEED)
@@ -141,93 +142,44 @@ class Master():
     # RIGHT SIDE of the course:
     if not self.left: #RIGHT_CONTROL
       if self.featuresHit == 0:
-        self.send_position(0, 1.5*TICKS_REV)
-        self.wheels.publish(stop)
+        self.wheels.publish(START_SPEED,START_SPEED)
+        rospy.sleep(0.1)
 
       elif self.featuresHit == 1:
-        self.send_position(0, 0.75*TICKS_REV)
+        #self.send_position(0, 0.75*TICKS_REV)
+        self.wheels.publish(-10,70)
+        rospy.sleep(1.0)
         self.wheels.publish(stop)
-        self.speed.publish(60) #slow down once we have entered the higher circle
+        self.speed.publish(SLOW_SPEED) #slow down once we have entered the higher circle
 
       elif self.featuresHit == 2: # First T: pickup stone
-        self.wheels.publish(stop)
-        rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
-        self.reckon = True
-        while self.reckon:
-          rospy.spin()
-    # BEGIN: Sequence fo. Stone Pickup
-        # x = 250
-        # self.base.publish(-90)
-        # self.shoulder.publish(x)
-        # self.elbow.publish(250)
-        # rospy.sleep(0.5)
-        # while not self.claw_limit_switch or x < 400:
-        #     x += 5
-        #     self.shoulder.publish(x)
-        #     rospy.sleep(0.05)
-        # self.claw.publish(180,180) # close
-        # rospy.sleep(0.1)
-        # self.elbow.publish(150)  # lift up
-        # rospy.sleep(0.2)
-        # self.shoulder.publish(400) #return to resting position
-        # self.elbow.publish(250)
-    # END: Sequence for Stone Pickup
-
-        self.send_position(4*TICKS_REV, 0) #turn around
-
+        self.wheels.publish(SLOW_SPEED+25,SLOW_SPEED-25)
+        rospy.sleep(0.6)
       if self.featuresHit == 3: #manouvering to the gauntlet
-        send_position(2*TICKS_REV, 0)
-        send_position(TICKS_REV,TICKS_REV)
-        send_position(0,TICKS_REV)
-        send_position(-TICKS_REV, -TICKS_REV)
-        send_position(TICKS_REV,TICKS_REV)
+         self.wheels.publish(0,0)
+         rospy.sleep(3)
 
     else: #Left side of the course RIGHT_CONTROL
       if self.featuresHit == 0:
-        self.send_position(1.5*TICKS_REV, 0)
-        self.wheels.publish(stop)
+        self.wheels.publish(START_SPEED,START_SPEED)
+        rospy.sleep(0.1)
 
       elif self.featuresHit == 1:
-        self.send_position(0.75*TICKS_REV, 0)
-        self.wheels.publish(stop)
-        self.speed.publish(60) #slow down once we have entered the higher circle
+        #self.send_position(0, 0.75*TICKS_REV)
+        self.wheels.publish(-10,70)
+        rospy.sleep(1.0)
+        self.wheels.publish(0,0)
 
       elif self.featuresHit == 2: # First T: pickup stone
-        self.wheels.publish(stop)
-        rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
-        self.reckon = True
-        while self.reckon == True:
-          rospy.spin()
-    # BEGIN: Sequence for Stone Pickup
-        # x = 250
-        # self.base.publish(-90)
-        # self.shoulder.publish(x)
-        # self.elbow.publish(250)
-        # rospy.sleep(0.5)
-        # while not self.claw_limit_switch or x < 400:
-        #     x += 5
-        #     self.shoulder.publish(x)
-        #     rospy.sleep(0.05)
-        # self.claw.publish(180,180) # close
-        # rospy.sleep(0.1)
-        # self.elbow.publish(150)  # lift up
-        # rospy.sleep(0.2)
-        # self.shoulder.publish(400) #return to resting position
-        # self.elbow.publish(250)
-    # END: Sequence for Stone Pickup
-
-        self.send_position(0, 4*TICKS_REV) #turn around
+        self.speed.publish(SLOW_SPEED) #slow down once we have entered the higher circle
 
       if self.featuresHit == 3: #manouvering to the gauntlet
-        self.send_position(0, 2*TICKS_REV)
-        self.send_position(TICKS_REV,TICKS_REV)
-        self.send_position(TICKS_REV, 0)
-        self.send_position(-TICKS_REV, -TICKS_REV)
-        self.send_position(TICKS_REV,TICKS_REV)
+        pass
 
     self.featuresHit = self.featuresHit + 1
     self.pid_enable.publish(True)
     self.featureCallback=False
+
   def encoder_left_callback(self, msg): # set switch and reset the featues hit
         self.encoder_left = msg.data - self.begin_left
 

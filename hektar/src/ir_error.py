@@ -13,7 +13,7 @@ from hektar.cfg import Ir_ErrorConfig
 
 
 OFF_TAPE_ERROR = 4
-FEATURE_BUFFER = 2
+FEATURE_BUFFER = 4
 THRESHOLD = 400
 
 class Ir_Error():

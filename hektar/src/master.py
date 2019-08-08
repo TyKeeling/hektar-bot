@@ -123,6 +123,7 @@ class Master():
 
   def switch_callback(self, msg): # set switch and reset the featues hit
       self.left = msg.data
+      self.pid_enable.publish(True)
       self.featuresHit = 0
       self.begin_right = self.encoder_right
       self.begin_left  = self.encoder_left
@@ -156,7 +157,7 @@ class Master():
     rospy.sleep(0.3)
 
     # RIGHT SIDE of the course:
-    if not self.left or True:
+    if not self.left:
       if self.featuresHit == 0:
         self.wheels.publish(-10, 70) # guesses for the left turn
         rospy.sleep(2.0)             # replace with encoders when ready
@@ -206,7 +207,7 @@ class Master():
     self.encoder_right = msg.data - self.begin_right
 
   def pickup_stone(self, post_num):
-    self.base.publish(POSTS[post_num][BASE_INDEX])
+        self.base.publish(POSTS[post_num][BASE_INDEX])
 	self.shoulder.publish(POSTS[post_num][SHOULDER_INDEX])
 	self.elbow.publish(POSTS[post_num][ELBOW_INDEX])
 	rospy.sleep(2)

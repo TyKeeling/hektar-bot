@@ -1,8 +1,8 @@
 <launch>
    <node pkg="rosserial_python" type="serial_node.py" name="serial_node"
       output="screen">
-      <param name="port" value="/dev/ttyAMA0"/>
-      <param name="baud" value="115200"/>
+      <param name="port" value="/dev/ttyUSB0"/>
+      <param name="baud" value="57600"/>
    </node>
 
    <!-- <node name="control_master_calibrate" pkg="hektar" type="master_control_calibrate.py" output="screen" /> -->
@@ -10,7 +10,7 @@
    <node name="ir_error_node" pkg="hektar" type="ir_error.py" output="screen" />
 
    <node name="setpoint_node" pkg="hektar" type="wheel_setpoint.py" output="screen" >
-      <param name="threshold" value="400.0" />
+      <param name="threshold" value="560.0" />
    </node>
 
    <node name="wheel_pid" pkg="pid" type="controller" output="screen" >
