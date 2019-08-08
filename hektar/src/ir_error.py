@@ -28,7 +28,7 @@ class Ir_Error():
     self.sentFlag = False
 
   def array_callback(self, msg):
-    sensors = (msg.ir_0 + 150, msg.ir_1 - 100, msg.ir_2, msg.ir_3, msg.ir_4 + 150)
+    sensors = (msg.ir_0, msg.ir_1, msg.ir_2, msg.ir_3, msg.ir_4)
     pos = Float64()
     sensors_threshold = [0] * 5
 

@@ -11,6 +11,7 @@ DEFAULT = -1000
 TICKS_REV = 240 #ish
 ENCODER_ERROR = 20
 ENCODER_SPEED = 70
+START_SPEED = 55
 
 class Master():
   def __init__(self):
@@ -28,6 +29,7 @@ class Master():
     self.left = False
     self.collided = False
     self.featureCallback = False
+    self.reckon=False
 
     self.encoder_left = 0
     self.encoder_right = 0
@@ -35,20 +37,21 @@ class Master():
     self.begin_right = 0
 
     self.pid_enable.publish(True)
-    self.speed.publish(100)
+    self.speed.publish(70)
 
   # outputs the number of encoder ticks
   # thinking that one wheel moving one tick is about 1.14 deg or 2.3 for both
   # also 95*2.5 ticks makes one full revolution of the wheel.
   # assumes that PID is disabled.
   def send_position(self, leftWheel, rightWheel): #send revolution * TICKS_REV
+    self.reckon=False
     wheel = wheelVelocity();
     leftTarget = leftWheel + self.encoder_left
     rightTarget = rightWheel + self.encoder_right
     leftDone, rightDone = False, False
     i = 0
 
-    while leftDone == False or rightDone == False:
+    while leftDone == False or rightDone == False and self.reckon == True:
         if leftTarget - self.encoder_left > ENCODER_ERROR:
             wheel.wheelL = ENCODER_SPEED
         elif self.encoder_left - leftTarget > ENCODER_ERROR:
@@ -100,10 +103,13 @@ class Master():
     self.collided = False
 
   def switch_callback(self, msg): # set switch and reset the featues hit
+      self.reckon=False
+      self.pid_enable.publish(True)
       self.left = msg.data
       self.featuresHit = 0
       self.begin_right = self.encoder_right
       self.begin_left  = self.encoder_left
+      self.speed.publish(START_SPEED)
 
       if self.left:
           rospy.loginfo("switched to Left mode, reset featuresHit and Encoders")
@@ -133,22 +139,23 @@ class Master():
     rospy.sleep(0.3)
 
     # RIGHT SIDE of the course:
-    if not self.left or True:
+    if not self.left: #RIGHT_CONTROL
       if self.featuresHit == 0:
-        send_position(0, 2*TICKS_REV)
+        self.send_position(0, 1.5*TICKS_REV)
         self.wheels.publish(stop)
 
       elif self.featuresHit == 1:
-        send_position(0, 2*TICKS_REV)
+        self.send_position(0, 0.75*TICKS_REV)
         self.wheels.publish(stop)
         self.speed.publish(60) #slow down once we have entered the higher circle
 
       elif self.featuresHit == 2: # First T: pickup stone
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
-        rospy.sleep(30)
-
-    # BEGIN: Sequence for Stone Pickup
+        self.reckon = True
+        while self.reckon:
+          rospy.spin()
+    # BEGIN: Sequence fo. Stone Pickup
         # x = 250
         # self.base.publish(-90)
         # self.shoulder.publish(x)
@@ -166,7 +173,7 @@ class Master():
         # self.elbow.publish(250)
     # END: Sequence for Stone Pickup
 
-        send_position(4*TICKS_REV, 0) #turn around
+        self.send_position(4*TICKS_REV, 0) #turn around
 
       if self.featuresHit == 3: #manouvering to the gauntlet
         send_position(2*TICKS_REV, 0)
@@ -175,21 +182,22 @@ class Master():
         send_position(-TICKS_REV, -TICKS_REV)
         send_position(TICKS_REV,TICKS_REV)
 
-    else: #Left side of the course
+    else: #Left side of the course RIGHT_CONTROL
       if self.featuresHit == 0:
-        send_position(2*TICKS_REV, 0)
+        self.send_position(1.5*TICKS_REV, 0)
         self.wheels.publish(stop)
 
       elif self.featuresHit == 1:
-        send_position(2*TICKS_REV, 0)
+        self.send_position(0.75*TICKS_REV, 0)
         self.wheels.publish(stop)
         self.speed.publish(60) #slow down once we have entered the higher circle
 
       elif self.featuresHit == 2: # First T: pickup stone
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
-        rospy.sleep(30)
-
+        self.reckon = True
+        while self.reckon == True:
+          rospy.spin()
     # BEGIN: Sequence for Stone Pickup
         # x = 250
         # self.base.publish(-90)
@@ -208,14 +216,14 @@ class Master():
         # self.elbow.publish(250)
     # END: Sequence for Stone Pickup
 
-        send_position(0, 4*TICKS_REV) #turn around
+        self.send_position(0, 4*TICKS_REV) #turn around
 
       if self.featuresHit == 3: #manouvering to the gauntlet
-        send_position(0, 2*TICKS_REV)
-        send_position(TICKS_REV,TICKS_REV)
-        send_position(TICKS_REV, 0)
-        send_position(-TICKS_REV, -TICKS_REV)
-        send_position(TICKS_REV,TICKS_REV)
+        self.send_position(0, 2*TICKS_REV)
+        self.send_position(TICKS_REV,TICKS_REV)
+        self.send_position(TICKS_REV, 0)
+        self.send_position(-TICKS_REV, -TICKS_REV)
+        self.send_position(TICKS_REV,TICKS_REV)
 
     self.featuresHit = self.featuresHit + 1
     self.pid_enable.publish(True)
@@ -238,6 +246,7 @@ class Master():
           self.pid_enable.publish(True)
 
   def  cleanup(self):
+    self.reckon = False
     rospy.sleep(0.03)
     self.pid_enable.publish(True)
 

@@ -104,6 +104,7 @@ class Master():
       self.featuresHit = 0
       self.begin_right = self.encoder_right
       self.begin_left  = self.encoder_left
+      self.speed.publish(100)
 
       if self.left:
           rospy.loginfo("switched to Left mode, reset featuresHit and Encoders")
