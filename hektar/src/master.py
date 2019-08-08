@@ -172,7 +172,7 @@ class Master():
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
         rospy.sleep(10)
-        self.pickup_stone(RIGHT_FIRST_STONE)
+        #self.pickup_stone(RIGHT_FIRST_STONE)
 
     else: #Left side of the course
       if self.featuresHit == 0:
@@ -191,7 +191,7 @@ class Master():
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
         rospy.sleep(30)
-		self.pickup_stone(LEFT_FIRST_STONE)
+		#self.pickup_stone(LEFT_FIRST_STONE)
         # U-TURN AND TAPE FOLLOW BACK TO FORK TO PLACE STONE (or continue on to get another stone)
 
     self.featuresHit = self.featuresHit + 1
