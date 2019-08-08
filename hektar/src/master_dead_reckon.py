@@ -135,50 +135,11 @@ class Master():
     # RIGHT SIDE of the course:
     if not self.left or True:
       if self.featuresHit == 0:
-        self.wheels.publish(-10, 70) # guesses for the left turn
-        rospy.sleep(2.0)             # replace with encoders when ready
+        send_position(0, 2*TICKS_REV)
         self.wheels.publish(stop)
 
       elif self.featuresHit == 1:
-
-        self.wheels.publish(-10, 50)
-        rospy.sleep(1.5)
-        self.wheels.publish(stop)
-        self.speed.publish(60) #slow down once we have entered the higher circle
-
-      elif self.featuresHit == 2: # First T: pickup stone
-        self.wheels.publish(stop)
-        rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
-        rospy.sleep(10)
-
-    # BEGIN: Sequence for Stone Pickup
-        # x = 250
-        # self.base.publish(-90)
-        # self.shoulder.publish(x)
-        # self.elbow.publish(250)
-        # rospy.sleep(0.5)
-        # while not self.claw_limit_switch or x < 400:
-        #     x += 5
-        #     self.shoulder.publish(x)
-        #     rospy.sleep(0.05)
-        # self.claw.publish(180,180) # close
-        # rospy.sleep(0.1)
-        # self.elbow.publish(150)  # lift up
-        # rospy.sleep(0.2)
-        # self.shoulder.publish(400) #return to resting position
-        # self.elbow.publish(250)
-    # END: Sequence for Stone Pickup
-
-    else: #Left side of the course
-      if self.featuresHit == 0:
-        self.wheels.publish(50, -10) # guesses for the left turn
-        rospy.sleep(2.0)             # replace with encoders when ready
-        self.wheels.publish(stop)
-
-      elif self.featuresHit == 1:
-
-        self.wheels.publish(50, -10)
-        rospy.sleep(1.5)
+        send_position(0, 2*TICKS_REV)
         self.wheels.publish(stop)
         self.speed.publish(60) #slow down once we have entered the higher circle
 
@@ -205,11 +166,60 @@ class Master():
         # self.elbow.publish(250)
     # END: Sequence for Stone Pickup
 
+        send_position(4*TICKS_REV, 0) #turn around
+
+      if self.featuresHit == 3: #manouvering to the gauntlet
+        send_position(2*TICKS_REV, 0)
+        send_position(TICKS_REV,TICKS_REV)
+        send_position(0,TICKS_REV)
+        send_position(-TICKS_REV, -TICKS_REV)
+        send_position(TICKS_REV,TICKS_REV)
+
+    else: #Left side of the course
+      if self.featuresHit == 0:
+        send_position(2*TICKS_REV, 0)
+        self.wheels.publish(stop)
+
+      elif self.featuresHit == 1:
+        send_position(2*TICKS_REV, 0)
+        self.wheels.publish(stop)
+        self.speed.publish(60) #slow down once we have entered the higher circle
+
+      elif self.featuresHit == 2: # First T: pickup stone
+        self.wheels.publish(stop)
+        rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
+        rospy.sleep(30)
+
+    # BEGIN: Sequence for Stone Pickup
+        # x = 250
+        # self.base.publish(-90)
+        # self.shoulder.publish(x)
+        # self.elbow.publish(250)
+        # rospy.sleep(0.5)
+        # while not self.claw_limit_switch or x < 400:
+        #     x += 5
+        #     self.shoulder.publish(x)
+        #     rospy.sleep(0.05)
+        # self.claw.publish(180,180) # close
+        # rospy.sleep(0.1)
+        # self.elbow.publish(150)  # lift up
+        # rospy.sleep(0.2)
+        # self.shoulder.publish(400) #return to resting position
+        # self.elbow.publish(250)
+    # END: Sequence for Stone Pickup
+
+        send_position(0, 4*TICKS_REV) #turn around
+
+      if self.featuresHit == 3: #manouvering to the gauntlet
+        send_position(0, 2*TICKS_REV)
+        send_position(TICKS_REV,TICKS_REV)
+        send_position(TICKS_REV, 0)
+        send_position(-TICKS_REV, -TICKS_REV)
+        send_position(TICKS_REV,TICKS_REV)
 
     self.featuresHit = self.featuresHit + 1
     self.pid_enable.publish(True)
     self.featureCallback=False
-
   def encoder_left_callback(self, msg): # set switch and reset the featues hit
         self.encoder_left = msg.data - self.begin_left
 
