@@ -207,32 +207,32 @@ class Master():
     self.encoder_right = msg.data - self.begin_right
 
   def pickup_stone(self, post_num):
-        self.base.publish(POSTS[post_num][BASE_INDEX])
-	self.shoulder.publish(POSTS[post_num][SHOULDER_INDEX])
-	self.elbow.publish(POSTS[post_num][ELBOW_INDEX])
-	rospy.sleep(2)
-	i = POSTS[post_num][SHOULDER_INDEX]
-	while not self.claw_limit_switch or i < 400:
-	  i += 5
-	  self.shoulder.publish(i)
-	  rospy.sleep(0.05)
-	self.claw.publish(180, 180) #close
-	rospy.sleep(0.1)
-	self.elbow.publish(POSTS[post_num][ELBOW_INDEX] + LIFT_UP_OFFSET) # lift up
-	rospy.sleep(0.2)
-	self.shoulder.publish(POSTS[post_num][SHOULDER_INDEX]) # put shoulder back to start position
-	self.elbow.publish(POSTS[post_num][ELBOW_INDEX]) # put elbow back to start position
+    self.base.publish(POSTS[post_num][BASE_INDEX])
+    self.shoulder.publish(POSTS[post_num][SHOULDER_INDEX])
+    self.elbow.publish(POSTS[post_num][ELBOW_INDEX])
+    rospy.sleep(2)
+    i = POSTS[post_num][SHOULDER_INDEX]
+    while not self.claw_limit_switch or i < 400:
+      i += 5
+      self.shoulder.publish(i)
+      rospy.sleep(0.05)
+    self.claw.publish(180, 180) #close
+    rospy.sleep(0.1)
+    self.elbow.publish(POSTS[post_num][ELBOW_INDEX] + LIFT_UP_OFFSET) # lift up
+    rospy.sleep(0.2)
+    self.shoulder.publish(POSTS[post_num][SHOULDER_INDEX]) # put shoulder back to start position
+    self.elbow.publish(POSTS[post_num][ELBOW_INDEX]) # put elbow back to start position
 
 	# take shoulder and elbow values now
     
   def place_stone(self):
     self.base.publish(0)
-	self.elbow.publish(GAUNTLET[ELBOW_INDEX])
-	self.shoulder.publish(GAUNTLET[SHOULDER_INDEX])
-	rospy.sleep(2)
-	self.claw.publish(0, 0) #open
+    self.elbow.publish(GAUNTLET[ELBOW_INDEX])
+    self.shoulder.publish(GAUNTLET[SHOULDER_INDEX])
+    rospy.sleep(2)
+    self.claw.publish(0, 0) #open
     rospy.sleep(0.5)
-	self.elbow.publish(GAUNTLET[ELBOW_INDEX])
+    self.elbow.publish(GAUNTLET[ELBOW_INDEX])
 
   def refresh(self):
       if not self.featureCallback:
