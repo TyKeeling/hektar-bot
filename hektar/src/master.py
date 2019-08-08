@@ -11,6 +11,21 @@ DEFAULT = -1000
 TICKS_REV = 240 #ish
 ENCODER_ERROR = 20
 ENCODER_SPEED = 70
+SHOULDER_INDEX = 0
+ELBOW_INDEX = 1
+BASE_INDEX = 2
+LEFT_FIRST_STONE = 0
+LEFT_SECOND_STONE = 1
+RIGHT_FIRST_STONE = 2
+RIGHT_SECOND_STONE = 3
+POSTS = (
+  (250, 250, 90),
+  (250, 250, 90),
+  (250, 250, -90),
+  (250, 250, -90),
+)
+GAUNTLET = (250, 250)
+
 
 class Master():
   def __init__(self):
@@ -33,6 +48,13 @@ class Master():
     self.encoder_right = 0
     self.begin_left = 0
     self.begin_right = 0
+
+    self.posts = (
+	  (250, 250, 90),
+	  (250, 250, 90),
+      (250, 250, -90),
+	  (250, 250, -90),
+	)
 
     self.pid_enable.publish(True)
     self.speed.publish(100)
@@ -151,24 +173,7 @@ class Master():
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
         rospy.sleep(10)
-
-    # BEGIN: Sequence for Stone Pickup
-        # x = 250
-        # self.base.publish(-90)
-        # self.shoulder.publish(x)
-        # self.elbow.publish(250)
-        # rospy.sleep(0.5)
-        # while not self.claw_limit_switch or x < 400:
-        #     x += 5
-        #     self.shoulder.publish(x)
-        #     rospy.sleep(0.05)
-        # self.claw.publish(180,180) # close
-        # rospy.sleep(0.1)
-        # self.elbow.publish(150)  # lift up
-        # rospy.sleep(0.2)
-        # self.shoulder.publish(400) #return to resting position
-        # self.elbow.publish(250)
-    # END: Sequence for Stone Pickup
+        #self.pickup_stone(RIGHT_FIRST_STONE)
 
     else: #Left side of the course
       if self.featuresHit == 0:
@@ -187,35 +192,46 @@ class Master():
         self.wheels.publish(stop)
         rospy.loginfo("at the T intersection. Robot will be stopped until mode switch is changed.")
         rospy.sleep(30)
-
-    # BEGIN: Sequence for Stone Pickup
-        # x = 250
-        # self.base.publish(-90)
-        # self.shoulder.publish(x)
-        # self.elbow.publish(250)
-        # rospy.sleep(0.5)
-        # while not self.claw_limit_switch or x < 400:
-        #     x += 5
-        #     self.shoulder.publish(x)
-        #     rospy.sleep(0.05)
-        # self.claw.publish(180,180) # close
-        # rospy.sleep(0.1)
-        # self.elbow.publish(150)  # lift up
-        # rospy.sleep(0.2)
-        # self.shoulder.publish(400) #return to resting position
-        # self.elbow.publish(250)
-    # END: Sequence for Stone Pickup
-
+		#self.pickup_stone(LEFT_FIRST_STONE)
+        # U-TURN AND TAPE FOLLOW BACK TO FORK TO PLACE STONE (or continue on to get another stone)
 
     self.featuresHit = self.featuresHit + 1
     self.pid_enable.publish(True)
     self.featureCallback=False
 
   def encoder_left_callback(self, msg): # set switch and reset the featues hit
-        self.encoder_left = msg.data - self.begin_left
+    self.encoder_left = msg.data - self.begin_left
 
   def encoder_right_callback(self, msg): # set switch and reset the featues hit
-        self.encoder_right = msg.data - self.begin_right
+    self.encoder_right = msg.data - self.begin_right
+
+  def pickup_stone(self, post_num):
+    self.base.publish(POSTS[post_num][BASE_INDEX])
+	self.shoulder.publish(POSTS[post_num][SHOULDER_INDEX])
+	self.elbow.publish(POSTS[post_num][ELBOW_INDEX])
+	rospy.sleep(2)
+	i = POSTS[post_num][SHOULDER_INDEX]
+	while not self.claw_limit_switch or i < 400:
+	  i += 5
+	  self.shoulder.publish(i)
+	  rospy.sleep(0.05)
+	self.claw.publish(180, 180) #close
+	rospy.sleep(0.1)
+	self.elbow.publish(POSTS[post_num][ELBOW_INDEX] + LIFT_UP_OFFSET) # lift up
+	rospy.sleep(0.2)
+	self.shoulder.publish(POSTS[post_num][SHOULDER_INDEX]) # put shoulder back to start position
+	self.elbow.publish(POSTS[post_num][ELBOW_INDEX]) # put elbow back to start position
+
+	# take shoulder and elbow values now
+    
+  def place_stone(self):
+    self.base.publish(0)
+	self.elbow.publish(GAUNTLET[ELBOW_INDEX])
+	self.shoulder.publish(GAUNTLET[SHOULDER_INDEX])
+	rospy.sleep(2)
+	self.claw.publish(0, 0) #open
+    rospy.sleep(0.5)
+	self.elbow.publish(GAUNTLET[ELBOW_INDEX])
 
   def refresh(self):
       if not self.featureCallback:
@@ -228,7 +244,7 @@ class Master():
           rospy.sleep(2)
           self.pid_enable.publish(True)
 
-  def  cleanup(self):
+  def cleanup(self):
     rospy.sleep(0.03)
     self.pid_enable.publish(True)
 
